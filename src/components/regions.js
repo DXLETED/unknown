@@ -1,0 +1,1 @@
+export default ['br', 'eune', 'euw', 'jp', 'kr', 'lan', 'las', 'na', 'oce', 'tr', 'ru']

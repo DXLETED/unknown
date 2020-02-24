@@ -1,0 +1,39 @@
+@import "default-desktop/colorlist.scss";
+
+input {
+  background: none;
+  border: none;
+  font-family: inherit;
+  color: inherit;
+  &:focus {
+    outline: none;
+  }
+}
+
+.check {
+  cursor: pointer;
+  &::before {
+    content: "";
+    display: block;
+    height: 100%;
+    width: 0.8vh;
+    background: $grey;
+    margin-right: 0.4vh;
+  }
+  &.enabled::before {
+    background: $white;
+  }
+}
+
+footer {
+  width: 100%;
+  > #terms {
+    text-align: center;
+    color: $grey;
+    padding: 0.5vh;
+  }
+}
+
+#root, .load {
+  display: none;
+}
