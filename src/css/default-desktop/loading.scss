@@ -1,0 +1,40 @@
+@import './colorlist.scss';
+
+.loading {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  > .loading-animation {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transform: rotate(-45deg);
+    animation: move 2s linear infinite;
+    > .rect {
+      width: 1000%;
+      height: 2vh;
+      &:nth-child(2n) {
+        background: $grey;
+        opacity: 0.2;
+      }
+    }
+  }
+}
+
+@keyframes move {
+  0% {
+    left: 0vh;
+    top: 0vh;
+  }
+  100% {
+    left: 5.5vh;
+  }
+}

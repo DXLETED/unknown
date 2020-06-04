@@ -29,7 +29,7 @@ module.exports = {
             replacements: [
               {
                 pattern: /(\ \-?[\d\.]*vh)/g,
-                replacement: (match, p1, offset, string) => ' calc(var(--vh) * var(--sc) * ' + p1.replace('vh', ')')
+                replacement: (match, p1, offset, string) => ' calc(var(--vh) * var(--sc) *' + p1.replace('vh', ')')
               },
               {
                 pattern: /(rh)/g,
@@ -49,7 +49,8 @@ module.exports = {
   plugins: [
     new NodemonPlugin({
       script: './server/index.js',
-      watch: './server'
+      watch: './server',
+      nodeArgs: ['--expose-gc']
     }),
     new StringReplacePlugin()
   ],

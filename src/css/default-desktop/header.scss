@@ -82,7 +82,7 @@ header {
       > .r-list {
         display: flex;
         height: 100%;
-        > .list-el:not(#select-lang):not(#select-menu) {
+        > .list-el:not(#menu-lang):not(#select-menu) {
           margin-right: 1vh;
         }
       }
@@ -538,13 +538,11 @@ header {
     box-shadow: $shadow 0 0 1vh;
     &#modal-settings, &#modal-devtools {
       display: flex;
-      flex-direction: column;
       width: 70vh;
       height: 95.5vh;
       position: fixed;
       right: -10vh;
       top: 4.5vh;
-      padding: 2vh;
       transition: opacity 0.2s linear, right 0.2s linear, visibility 0.2s step-end, z-index 0.2s step-end;
       background: rgba($main, 0.8);
       backdrop-filter: blur(0.5vh);
@@ -556,12 +554,22 @@ header {
         transition: opacity 0.2s linear, right 0.2s linear, visibility 0.2s step-start, z-index 0.2s step-start;
       }
     }
+    &#modal-settings {
+      padding: 2vh;
+      > .switch {
+        width: 40%;
+        margin-right: 10%;
+        height: 2vh;
+      }
+    }
     &#modal-devtools {
+      flex-direction: column;
       padding: 1vh 0;
       > .switchmenu {
         display: flex;
         flex-direction: column;
         position: relative;
+        margin-bottom: 1vh;
         &.active {
           > .headline {
             border-color: $white;

@@ -1,0 +1,398 @@
+@import './colorlist.scss';
+
+.page#summoners {
+  height: 91vh;
+  > main {
+    display: flex;
+    height: 100%;
+    > #side {
+      width: 40vh;
+      height: 100%;
+      padding: 2vh 1vh;
+      flex-direction: column;
+      background: $lmain;
+      > * {
+        position: relative;
+        margin-bottom: 2vh;
+      }
+      > #summoner {
+        width: 100%;
+        height: 11vh;
+        padding: 1.5vh;
+        background: $main;
+        > #profile-icon {
+          height: 100%;
+          border-radius: 1vh;
+          margin-right: 2vh;
+        }
+        > #summoner-data {
+          width: 60%;
+          justify-content: space-between;
+          flex-direction: column;
+          > #summoner-name {
+            font-size: 2.8vh;
+          }
+          > #summoner-info {
+            width: 100%;
+            flex-direction: column;
+            font-size: 1.7vh;
+            > * {
+              width: 100%;
+              justify-content: space-between;
+              > .title {
+                color: $lgrey;
+              }
+            }
+          }
+        }
+      }
+      > #league {
+        flex-direction: column;
+        width: 100%;
+        height: 15vh;
+        padding: 1.5vh;
+        background: $main;
+        > #league-tier > #tier {
+          margin-right: 0.5vh;
+        }
+        > #league-graph {
+          flex: 1;
+          justify-content: flex-end;
+          > .graph-chunk {
+            position: relative;
+            height: 100%;
+            margin-right: 0.2vh;
+            &:hover {
+              filter: brightness(150%);
+            }
+            > * {
+              position: absolute;
+              width: 100%;
+              height: 100%;
+              opacity: 0.5;
+            }
+          }
+        }
+      }
+      > #activity {
+        width: 100%;
+        min-height: 5vh;
+        padding: 1.5vh;
+        background: $main;
+        > #calendar {
+          width: 50%;
+          flex-direction: column;
+          > .day {
+            width: 100%;
+            height: 2vh;
+            margin-bottom: 0.25vh;
+            > .dayname {
+              color: $grey;
+            }
+            > .graph {
+              flex: 1;
+              justify-content: flex-end;
+              > .rect {
+                width: 2vh;
+                height: 100%;
+                margin-right: 0.25vh;
+                background: $grey;
+                &.inv {
+                  background: none;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    > #main {
+      flex: 1;
+      background: $main;
+      padding: 0 2vh;
+      > #matches-wr {
+        width: 70%;
+        height: 100%;
+        justify-content: space-between;
+        > .status {
+          width: 100%;
+          height: 4vh;
+          padding: 0 2vh;
+          margin-top: 2vh;
+          align-items: center;
+          position: relative;
+          background: $lmain;
+        }
+        > .double-scroll-wr {
+          width: 0.5vh;
+          overflow-y: auto;
+          overflow-x: hidden;
+          pointer-events: none;
+          scrollbar-color: $white transparent;
+          &:last-child {
+            transform: scale(-1, 1);
+          }
+          &::-webkit-scrollbar {
+            width: 0.5vh;
+          }
+          &::-webkit-scrollbar-thumb {
+            background: $white;
+          }
+          &::-webkit-scrollbar-track {
+            background: transparent;
+          }
+        }
+        > #matches {
+          width: calc(100% - 2vh);
+          height: 100%;
+          flex-direction: column;
+          overflow-y: auto;
+          overflow-x: hidden;
+          scrollbar-width: none;
+          &::-webkit-scrollbar {
+            width: 0;
+          }
+          > .match {
+            width: 100%;
+            height: 16vh;
+            flex: none;
+            position: relative;
+            flex-direction: column;
+            margin-bottom: 2vh;
+            &:first-child {
+              margin-top: 2vh;
+            }
+            > .head {
+              width: 100%;
+              height: 3vh;
+              padding: 0 1vh;
+              align-items: center;
+              background: $grey;
+              color: $black;
+              > * {
+                margin-right: 1vh;
+                &::after {
+                  content: 'I';
+                  margin-left: 1vh;
+                }
+              }
+            }
+            > .matchInfo {
+              position: relative;
+              width: 100%;
+              height: 13vh;
+              background: $lmain;
+              justify-content: flex-end;
+              > .position {
+                position: absolute;
+                left: 1vh;
+                top: 1vh;
+                height: 4vh;
+                height: 4vh;
+                margin-right: 0.5vh;
+                > img {
+                  height: 100%;
+                }
+              }
+              > .abilities {
+                position: absolute;
+                left: 1vh;
+                bottom: 1vh;
+                height: 4vh;
+                color: $black;
+                > * {
+                  align-items: flex-end;
+                }
+                > .runes {
+                  position: relative;
+                  margin-right: 2vh;
+                  > .mainRune {
+                    height: 100%;
+                  }
+                  > .addRune {
+                    position: absolute;
+                    left: 1.75vh;
+                    top: 1.75vh;
+                    height: 50%;
+                  }
+                }
+                > .spell1, > .spell2 {
+                  height: 100%;
+                  > img {
+                    height: 70%;
+                    margin-right: 0.5vh;
+                  }
+                }
+              }
+              > .stats {
+                flex-direction: column;
+                width: 26vh;
+                height: 100%;
+                justify-content: center;
+                margin-right: 2vh;
+                > * {
+                  width: 100%;
+                  height: 22.5%;
+                  justify-content: center;
+                  align-items: center;
+                  &:not(.items) {
+                    margin-bottom: 0.5vh;
+                  }
+                }
+                > .stats1 {
+                  background: $main;
+                }
+                > .stats1, > .stats2 {
+                  > * {
+                    flex: 1;
+                    justify-content: center;
+                    align-items: center;
+                    > img {
+                      height: 1.75vh;
+                      margin-right: 0.5vh;
+                    }
+                  }
+                  > .k-d-a > .kda {
+                    margin-left: 1vh;
+                    color: $grey;
+                  }
+                }
+                > .items {
+                  justify-content: space-between;
+                  > img {
+                    height: 100%;
+                    border-radius: 0.5vh;
+                    margin-left: 0.5vh;
+                  }
+                  > .s {
+                    flex: 1;
+                  }
+                }
+              }
+              > .players {
+                width: 30vh;
+                height: 100%;
+                font-size: 1.2vh;
+                margin-right: 2vh;
+                > .positions {
+                  flex-direction: column;
+                  width: 15%;
+                  height: 100%;
+                  align-items: center;
+                  > * {
+                    width: 100%;
+                    height: 20%;
+                    justify-content: center;
+                    align-items: center;
+                    > img {
+                      display: inline-block;
+                      vertical-align: middle;
+                      height: 90%;
+                    }
+                  }
+                }
+                > .team1, .team2 {
+                  &.team1 {
+                    > * {
+                      > .summonerName {
+                        text-align: right;
+                      }
+                      > .icon {
+                        margin-left: 1vh;
+                      }
+                    }
+                  }
+                  &.team2 {
+                    > * {
+                      > .icon {
+                        margin-right: 1vh;
+                      }
+                    }
+                  }
+                  position: relative;
+                  flex-direction: column;
+                  width: 42.5%;
+                  height: 100%;
+                  align-items: center;
+                  > * {
+                    width: 100%;
+                    height: 20%;
+                    align-items: center;
+                    cursor: pointer;
+                    &:hover > .summonerName {
+                      color: $white;
+                    }
+                    > .summonerName {
+                      flex: 1;
+                      overflow: hidden;
+                      white-space: nowrap;
+                      text-overflow: ellipsis;
+                      color: $grey;
+                    }
+                    > .icon {
+                      width: 2.25vh;
+                      height: 2.25vh;
+                      justify-content: center;
+                      align-items: center;
+                      overflow: hidden;
+                      border-radius: 0.5vh;
+                      > img {
+                        height: 110%;
+                      }
+                    }
+                  }
+                }
+              }
+              > .img {
+                width: 100%;
+                max-width: 55vh;
+                height: 100%;
+                opacity: 0.75;
+                position: absolute;
+                left: 0;
+                top: 0;
+              }
+              > *:not(.img) {
+                z-index: 1;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  > #nav {
+    height: 4.5vh;
+    background: $lmain;
+    box-shadow: $shadow 0 0 1vh;
+    z-index: 10;
+    > .nav-item {
+      display: flex;
+      height: 100%;
+      position: relative;
+      padding: 2vh;
+      margin-right: 1vh;
+      align-items: center;
+      background: $dmain;
+      &:hover {
+        background: $dgrey;
+      }
+      &.active::after {
+        background: $white;
+      }
+      &.nowplaying {
+        color: $green;
+      }
+      &::after {
+        content: "";
+        width: 100%;
+        height: 0.2vh;
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        background: $grey;
+        pointer-events: none;
+      }
+    }
+  }
+}

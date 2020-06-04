@@ -1,0 +1,1 @@
+export const positions = ['top', 'jng', 'mid', 'bot', 'sup']

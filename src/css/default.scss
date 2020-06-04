@@ -1,15 +1,5 @@
 @import "default-desktop/colorlist.scss";
 
-input {
-  background: none;
-  border: none;
-  font-family: inherit;
-  color: inherit;
-  &:focus {
-    outline: none;
-  }
-}
-
 .check {
   cursor: pointer;
   &::before {

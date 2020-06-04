@@ -1,0 +1,11 @@
+export const DIVISIONS_COUNT = {
+  IRON: 4,
+  BRONZE: 4,
+  SILVER: 4,
+  GOLD: 4,
+  PLATINUM: 4,
+  DIAMOND: 4,
+  MASTER: 0,
+  GRANDMASTER: 0,
+  CHALLENGER: 0,
+}

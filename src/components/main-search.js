@@ -4,11 +4,13 @@ import assets from '../assets'
 import { cssRh } from './cssvars'
 import Velocity from 'velocity-animate'
 import { DoubleScrollbar } from './double-scrollbar'
+import { NavLink as Link, useHistory } from 'react-router-dom'
 import rgs from './regions'
 console.log(assets)
 
 export const MainOverlay = props => {
   const [focus, setFocus] = useState(false)
+  const history = useHistory()
   let focusRef = useRef()
   let resultsFocusRef = useRef(false)
   const searchRef = useRef()
@@ -28,32 +30,7 @@ export const MainOverlay = props => {
   const forceUpdate = useState()[1]
   const [results, setResults] = useState({
     items: [],
-    summoners: [
-      {
-        summonerName: '1qwer',
-        rank: 'Platinum 2',
-        level: 89,
-        region: 'RU'
-      },
-      {
-        summonerName: '1qwer',
-        rank: 'Platinum 2',
-        level: 89,
-        region: 'RU'
-      },
-      {
-        summonerName: '1qwer',
-        rank: 'Platinum 2',
-        level: 89,
-        region: 'RU'
-      },
-      {
-        summonerName: '1qwer',
-        rank: 'Platinum 2',
-        level: 89,
-        region: 'RU'
-      }
-    ]
+    summoners: []
   })
   const updateResults = data => {
     resultsRef.current = {...resultsRef.current, ...data}
@@ -137,6 +114,10 @@ export const MainOverlay = props => {
           break
         case 13:
         case 32:
+          switch (posRef.current.cat) {
+            case 'summoners': history.push(`/summoners/${resultsRef.current[posRef.current.cat][posRef.current.i].region}/${resultsRef.current[posRef.current.cat][posRef.current.i].summonerName}`)
+          }
+          console.log(resultsRef.current[posRef.current.cat][posRef.current.i])
           break
       }
     }
@@ -153,44 +134,47 @@ export const MainOverlay = props => {
   const keyUp = e => {
     let value = e.target.value
     if (value != lastValue.current) {
+      lastValue.current = e.target.value
+      clearTimeout(loadSummoners.current)
       if (value.length < 3) {
-        clearTimeout(loadSummoners.current)
         return setResults({items: [], summoners: []})
       }
-      lastValue.current = e.target.value
       updateResults({items: assets.items.filter(el => el.name.toLowerCase().includes(value.toLowerCase()) && el.inStore)})
       updateResults({summoners: []})
-      clearTimeout(loadSummoners.current)
       loadSummoners.current = setTimeout(() => {
         let r = []
         Promise.all(rgs.map(rg => 
           fetch(`/api/v1/summoner/${rg}/${value.toLowerCase()}`)
             .then(res => res.json())
             .then(res => {
-              r.push({...res.data.summoner, region: rg})
-              console.log({...res.data.summoner, region: rg})
+              if (res.status == 200)
+                r.push({...res.d.summoner, region: rg})
             })
             .catch(e => {console.log(e)})
         )).then(() => {
           updateResults({summoners: r})
         })
-      }, 2000)
+      }, 500)
       console.log(assets.items.filter(el => el.name.toLowerCase().includes(e.target.value.toLowerCase()) && el.inStore))
     } 
     switch (e.keyCode) {
+      case 40:
       case 13:
-        for(let key of Object.keys(resultsRef.current))
-          if (resultsRef.current[key].length) {
-            setPos({cat: key, i: 0})
-            break
-          }
-        searchRef.current.blur()
-        resultsFocusRef.current = true
+        if (Object.values(resultsRef.current).find(el => el.length)) {
+          for(let key of Object.keys(resultsRef.current))
+            if (resultsRef.current[key].length) {
+              setPos({cat: key, i: 0})
+              break
+            }
+          searchRef.current.blur()
+          resultsFocusRef.current = true
+        }
         break
       case 27:
         setPos(null)
         searchRef.current.blur()
         resultsFocusRef.current = false
+        focusRef.current = false
         setFocus(false)
         break
     }
@@ -310,17 +294,17 @@ export const MainOverlay = props => {
                 </div>
                 <div className="list-wr">
                   {results.summoners.map((el, i) =>
-                    <div className={'list-el' + (pos ? (pos.cat == 'summoners' && pos.i == i ? ' focus' : '') : '')} key={i} onMouseEnter={() => setPosMouse({cat: 'summoners', i: i})} onMouseLeave={() => setPos(null)} ref={refs.current.summoners[i] = React.createRef()}>
+                    <Link to={`/summoners/${el.region}/${el.summonerName}`} className={'list-el' + (pos ? (pos.cat == 'summoners' && pos.i == i ? ' focus' : '') : '')} key={i} onMouseEnter={() => setPosMouse({cat: 'summoners', i: i})} onMouseLeave={() => setPos(null)} ref={refs.current.summoners[i] = React.createRef()}>
                       <div className="el-icon"><img src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${el.profileIconId}.jpg`} /></div>
                       <div className="el">
-                        <div className="profile-name">{el.name}</div>
+                        <div className="profile-name">{el.summonerName}</div>
                         <div className="el-info">
                           <div className="profile-rank">{el.rank}</div>
                           <div className="profile-level">{el.summonerLevel} level</div>
                         </div>
                       </div>
                       <div className="profile-region">{el.region.toUpperCase()}</div>
-                    </div>
+                    </Link>
                   )}
                 </div>
               </>

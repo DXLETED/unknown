@@ -2,11 +2,17 @@ import React, { useRef, useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 
 export const Switch = (props) => {
-  let settings = useSelector(state => state.settings)
+  const settings = useSelector(state => state.settings)
   const dispatch = useDispatch()
-  let update = () => {
+  const update = () => {
     dispatch({type: 'UPDATE_SETTINGS', data: {[props.akey]: !settings[props.akey]}})
   }
+  useEffect(() => {
+    if (!(props.akey in settings)) {
+      console.log(settings)
+      typeof props.defaultValue !== 'undefined' ? dispatch({type: 'UPDATE_SETTINGS', data: {[props.akey]: defaultValue}}) : dispatch({type: 'UPDATE_SETTINGS', data: {[props.akey]: false}})
+    }
+  }, [])
   return (
     <div className={'switch' + (settings[props.akey] ? ' active' : '')} onClick={update}>{props.label}</div>
   )

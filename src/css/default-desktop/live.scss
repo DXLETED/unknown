@@ -7,19 +7,32 @@
     height: 100%;
     > .team {
       display: flex;
+      position: relative;
       flex-direction: column;
       width: 30%;
       height: 100%;
       padding-top: 2vh;
       flex: none;
+      overflow: hidden;
       > .player-wr {
         display: flex;
         width: 95%;
         height: calc(20% - 2vh);
         margin-bottom: 2vh;
         position: relative;
+        opacity: 1;
+        transform: translateX(0);
+        &:not(.fullyVisible) {
+          transition: 0.5s all;
+        }
+        &.hide {
+          opacity: 0;
+        }
         &:hover {
           z-index: 3;
+        }
+        &.backdrop > .player {
+          box-shadow: $white 0 0 0.5vh;
         }
         > .player {
           display: flex;
@@ -30,7 +43,7 @@
           background: $lmain;
           z-index: 0;
           top: 0;
-          transition: top 0.2s linear, height 0.2s linear, box-shadow 0.2s, z-index 0.2s step-end;
+          transition: top 0.2s linear, height 0.2s linear, box-shadow 0.2s linear, z-index 0.2s step-end;
           &::after {
             content: "";
             display: flex;
@@ -42,16 +55,19 @@
             z-index: 1;
             background: linear-gradient(to left, $blue 20%, transparent 20%, transparent 50%, $blue 50%);
           }
+          &.user::after {
+            background: linear-gradient(to left, $green 20%, transparent 20%, transparent 50%, $green 50%);
+          }
           &:hover {
             top: -4vh;
             height: calc(100% + 8vh);
             box-shadow: $shadow 0 0 5vh;
             z-index: 2;
-            transition: top 0.2s linear, height 0.2s linear, box-shadow 0.2s, z-index 0.2s step-start;
-            &#player-1 {
+            transition: top 0.2s linear, height 0.2s linear, box-shadow 0.2s linear, z-index 0.2s step-start;
+            &#player-0 {
               top: 0;
             }
-            &#player-5 {
+            &#player-4 {
               top: -8vh;
             }
           }
@@ -72,10 +88,15 @@
               width: 20vh;
               height: 100%;
               > .summoner_name {
-                display: flex;
                 height: 3vh;
                 font-size: 2.1vh;
                 align-items: center;
+                > span {
+                  flex: 1;
+                  white-space: nowrap;
+                  text-overflow: ellipsis;
+                  overflow: hidden;
+                }
               }
               > .rank {
                 display: flex;
@@ -83,6 +104,9 @@
                 height: 3vh;
                 justify-content: space-between;
                 align-items: center;
+                &.full {
+                  width: 95%;
+                }
                 > .ranklp {
                   display: flex;
                   color: $grey;
@@ -187,6 +211,16 @@
           }
         }
       }
+      &#team1 {
+        > .player-wr.hide {
+          transform: translateX(-20%);
+        }
+      }
+      &#team2 {
+        > .player-wr.hide {
+          transform: translateX(20%);
+        }
+      }
       &#team2 {
         order: 1;
         align-items: flex-end;
@@ -235,13 +269,154 @@
         }
       }
     }
-    > div:not(.team) {
-      display: flex;
+    > #cheatsheet {
+      flex-direction: column;
       width: 40%;
       height: 100%;
+      padding: 2vh;
       background: $lmain;
       box-shadow: $shadow 0 0 0.5vh;
+      > .widget {
+        width: 100%;
+        flex-direction: column;
+        background: $main;
+        margin-bottom: 2vh;
+        opacity: 1;
+        transform: translateY(0);
+        transition: 0.5s all;
+        &.hide {
+          opacity: 0;
+          transform: translateY(4vh);
+        }
+        > .head {
+          width: 100%;
+          height: 3.5vh;
+          padding: 1vh;
+          justify-content: space-between;
+          align-items: center;
+          background: $grey;
+          color: $black;
+          > .visibility {
+            cursor: pointer;
+          }
+        }
+      }
+      > #teams-damagetype {
+        > .body {
+          justify-content: space-between;
+          padding: 1vh;
+          > .team1, > .team2 {
+            width: 25%;
+            flex-direction: column;
+            > .caption {
+              width: 100%;
+              margin-bottom: 0.5vh;
+            }
+            > .status {
+              height: 0.5vh;
+              margin-bottom: 0.5vh;
+              > .ad, > .ap {
+                width: 50%;
+                height: 100%;
+              }
+              > .ad {
+                background: $red;
+              }
+              > .ap {
+                background: $blue;
+              }
+            }
+            > .percentage {
+              justify-content: space-between;
+              > .ad {
+                color: $red;
+              }
+              > .ap {
+                color: $blue;
+              }
+            }
+          }
+          > .team2 {
+            > .caption {
+              justify-content: flex-end;
+            }
+          }
+        }
+      }
+      > #skill-order {
+        > .body {
+          padding: 1vh;
+          > .abilities {
+            flex-direction: column;
+            > .ability {
+              height: 3vh;
+              align-items: center;
+              &:not(:last-child) {
+                margin-bottom: 1vh;
+              }
+              > img {
+                height: 100%;
+                margin-right: 1vh;
+              }
+              > div {
+                width: 3vh;
+                height: 100%;
+                margin-right: 0.5vh;
+                justify-content: center;
+                align-items: center;
+                background: $lmain;
+              }
+              &.Q {
+                color: lighten($red, 10%);
+              }
+              &.W {
+                color: lighten($blue, 10%);
+              }
+              &.E {
+                color: lighten($green, 10%);
+              }
+              &.R {
+                color: lighten($yellow, 10%);
+              }
+            }
+          }
+          > .skill-order-stats {
+            flex-direction: column;
+            color: $grey;
+          }
+        }
+      }
+      > #items {
+        > .body {
+          flex-direction: column;
+          padding: 1vh;
+          > .itembuild {
+            height: 3.5vh;
+            align-items: center;
+            &:not(:last-child) {
+              margin-bottom: 1vh;
+            }
+            > .item {
+              height: 100%;
+              border-radius: 0.5vh;
+            }
+            > .arrow {
+              height: 40%;
+              margin: 0.5vh;
+            }
+          }
+        }
+      }
     }
+  }
+  > .status {
+    width: calc(100% - 4vh);
+    height: 4vh;
+    margin: 2vh;
+    padding: 2vh;
+    position: relative;
+    align-items: center;
+    background: $lmain;
   }
 }
 

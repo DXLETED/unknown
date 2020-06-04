@@ -33,7 +33,7 @@ export default (props) => {
   return (
     <div id={id} className={classnames('menu', props.className, {active: open})} ref={ref}>
       <div className="label" onClick={(e) => addActiveClass(e)}>{props.label}</div>
-      <Modal id={props.id} className={props.id} visible={open} style={style}>{props.dropdown}</Modal>
+      <Modal {...props} className={props.id} visible={open} style={style}>{props.dropdown}</Modal>
       {props.overlay && <Overlay id={props.id} className={props.id} open={true}>{props.overlay}</Overlay>}
     </div>
   )
