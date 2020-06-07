@@ -8,6 +8,7 @@ import Menu from '../components/menu'
 import { Switch, SwitchMenu } from '../components/switch'
 import { useSelector, useDispatch } from 'react-redux'
 import { ConfInput } from '../components/input'
+import { LoadStatus } from '../components/loadstatus'
 import { Select } from '../components/select'
 import regions from '../constants/regions'
 
@@ -83,11 +84,14 @@ const Limits = () => {
 const RiotApiKey = () => {
   let updateValue = useRef()
   let getValue = useRef()
+  const menu = useSelector(state => state.menus.devtools)
+  const switchmenu = useSelector(state => state.switchmenu['riotapi-key'])
   useEffect(() => {
-    fetch('/api/v1/key', {headers: {'Authorization': 'Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dpbiI6ImFkbWluIiwiaWQiOiI1ZTczYTg4NmI5Y2VkZDRlYzg0ODRlODYiLCJleHAiOjE1OTU5NDI3OTEsImlhdCI6MTU5MDc1ODc5MX0.zjQXpq1Q7PlNxuYuX9kIvTGFlYWportb5rXxI_uKiWs'}})
-      .then(res => res.json())
-      .then(res => updateValue.current(res.key))
-  }, [])
+    if (menu && switchmenu)
+      fetch('/api/v1/key', {headers: {'Authorization': 'Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dpbiI6ImFkbWluIiwiaWQiOiI1ZTczYTg4NmI5Y2VkZDRlYzg0ODRlODYiLCJleHAiOjE1OTU5NDI3OTEsImlhdCI6MTU5MDc1ODc5MX0.zjQXpq1Q7PlNxuYuX9kIvTGFlYWportb5rXxI_uKiWs'}})
+        .then(res => res.json())
+        .then(res => updateValue.current(res.key))
+  }, [menu, switchmenu])
   return (
     <ConfInput confirm={() => fetch('/api/v1/key', {method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dpbiI6ImFkbWluIiwiaWQiOiI1ZTczYTg4NmI5Y2VkZDRlYzg0ODRlODYiLCJleHAiOjE1OTU5NDI3OTEsImlhdCI6MTU5MDc1ODc5MX0.zjQXpq1Q7PlNxuYuX9kIvTGFlYWportb5rXxI_uKiWs'}, body: JSON.stringify({key: getValue.current()})})} getValue={func => getValue.current = func} updateValue={func => updateValue.current = func} />
   )
@@ -120,13 +124,14 @@ const Header = () => {
           </div>
           <div id="filter">ALL</div>
           <div className="l-list">
-            <Link className="list-el link" to="/summoners/" children="Summoners" />
-            <Link className="list-el link" to="/statistics/" children="Statistics" />
-            <Link className="list-el link" to="/live/ru/qwer" children="Live" />
+            <Link className="list-el link" to="/summoners" children="Summoners" />
+            <Link className="list-el link" to="/statistics" children="Statistics" />
+            <Link className="list-el link" to="/live" children="Live" />
           </div>
         </div>
         <div id="r-header">
           <div className="r-list">
+            <LoadStatus className="list-el load-status" />
             <Menu
               className="list-el"
               id="devtools"
@@ -136,7 +141,7 @@ const Header = () => {
                   <SwitchMenu akey="riotapi-key" id="riotapi-key" headline={<><div className="label">RiotAPI key</div></>}>
                     <RiotApiKey />
                   </SwitchMenu>
-                  <SwitchMenu akey="limits" id="limits" headline={<><div className="label">RiotAPI rate limits</div><div className="props">Region: <Select id="limits-region" akey="limitsRegion" selected={0} color="wh" dropdown={Object.keys(regions).map(rg => rg.toLocaleUpperCase())} /></div></>}>
+                  <SwitchMenu akey="limits" id="limits" headline={<><div className="label">RiotAPI rate limits</div><div className="props">Region: <Select id="limits-region" akey="limitsRegion" defaultValue={2} color="wh" dropdown={Object.keys(regions).map(rg => rg.toLocaleUpperCase())} /></div></>}>
                     <Limits />
                   </SwitchMenu>
                 </>
@@ -145,8 +150,9 @@ const Header = () => {
               }/>
             <Menu className="list-el" id="settings" label={<><img src="/static/img/header/settings_white.png" /><span>Settings</span></>} dropdown={
               <>
-                <Switch akey="colored_ranks" label="Colored ranks" />
+                <Switch akey="colored_ranks" label="Colored ranks" defaultValue={true} />
                 <Switch akey="full_leagues" label="Full leagues" />
+                <Switch akey="opt_championslist" label="Optimize champions list" defaultValue={true} />
               </>
             } />
             <Menu className="list-el" id="lang" label={<><img src="/static/img/header/language.png" /><span>EN</span></>} color="wh" dropdown="" />

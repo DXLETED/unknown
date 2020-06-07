@@ -146,6 +146,23 @@ header {
           background: $dgrey;
         }
       }
+      &.load-status {
+        padding: 0 1.5vh;
+        pointer-events: none;
+        > .bar {
+          content: "";
+          width: 0%;
+          height: 0.2vh;
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          background: $grey;
+          pointer-events: none;
+        }
+        &::after {
+          display: none;
+        }
+      }
       &:not(.disabled) {
         cursor: pointer;
       }
@@ -408,10 +425,10 @@ header {
           padding: 0 1vh;
           margin-bottom: 1vh;
           background: $grey;
-          color: $black;
           font-size: 1.8vh;
           > .selected {
             width: 100%;
+            color: $black;
           }
           &:hover {
             background: $white;
@@ -447,10 +464,11 @@ header {
     position: absolute;
     top: 100%;
     left: 0;
+    background: rgba($main, 0.8);
+    backdrop-filter: blur(0.5vh);
     cursor: default;
     > .selectitem {
       padding: 0.5vh 1vh;
-      background: $main;
       cursor: pointer;
       &.active {
         color: $blue;
@@ -556,9 +574,10 @@ header {
     }
     &#modal-settings {
       padding: 2vh;
+      flex-direction: column;
       > .switch {
         width: 40%;
-        margin-right: 10%;
+        margin-bottom: 1vh;
         height: 2vh;
       }
     }

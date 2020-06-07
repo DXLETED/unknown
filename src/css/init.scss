@@ -27,28 +27,71 @@ body {
   user-select: none;
 }
 
-.load {
-  display: flex;
-  width: 70vh;
-  height: 70vh;
+.page.hide {
+  overflow: hidden;
+}
+
+#preload {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100rh;
+  flex-direction: column;
+  background: $main;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
-  > .load-cont {
-    display: flex;
-    width: 20vh;
-    height: 100%;
-    flex: none;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    transform: rotate(45deg);
-    animation: load 1s infinite linear;
-    > .rect {
-      width: 22.5%;
-      height: 10000%;
-      flex: none;
-      background: linear-gradient(to right, rgba($dgrey, 0.5) 60%, transparent 40%);
+  z-index: 100;
+  opacity: 1;
+  visibility: visible;
+  transition: 1s opacity linear, 1s visibility step-end;
+  &.hide {
+    opacity: 0;
+    visibility: hidden;
+  }
+  > .sitename {
+    font-family: 'DH';
+    font-size: 4.5vh;
+    margin-bottom: 2vh;
+  }
+  > .loadstatus {
+    width: 40vh;
+    flex-direction: column;
+    margin-bottom: 2vh;
+    > .title {
+      margin-bottom: 0.5vh;
+    }
+    > .bar {
+      width: 100%;
+      height: 0.5vh;
+      background: $dmain;
+    }
+    &.scripts {
+      color: $yellow;
+      > .bar {
+        background: rgba($yellow, 0.2);
+        > .status {
+          background: $yellow;
+        }
+      }
+    }
+    &.assets {
+      color: $red;
+      > .bar {
+        background: rgba($red, 0.2);
+        > .status {
+          background: $red;
+        }
+      }
+    }
+    &.images {
+      color: $blue;
+      > .bar {
+        background: rgba($blue, 0.2);
+        > .status {
+          background: $blue;
+        }
+      }
     }
   }
 }

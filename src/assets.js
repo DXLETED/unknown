@@ -1,6 +1,6 @@
 let srcs = {
   //champions: 'http://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-summary.json',
-  champions: '/static/data/en_US/champion.json',
+  champions: '/static/data/en_US/champions.json',
   сhampionLocales: '/static/data/championLocales.json',
   items: 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/items.json',
   runes: '/static/json/runesReforged.json',

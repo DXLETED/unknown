@@ -89,6 +89,7 @@ const Matches = props => {
             </div>
           </div>
           <div className="head">
+            <div className={classnames('winlose', user.stats.win ? 'win' : 'lose')}>{user.stats.win ? 'WIN' : 'LOSE'}</div>
             <div className="gametype">{queues(m.match.queueId)}</div>
             <div className="gameduration">{~~(m.match.gameDuration / 60)} minutes</div>
             <div className="gamecreation">{Date.now() - m.match.gameCreation <= 604800000 ? moment(m.match.gameCreation).fromNow() : moment(m.match.gameCreation).format('YYYY-MM-DD')}</div>
@@ -240,11 +241,13 @@ const Summoners = () => {
             <div id="main">
               <div id="matches-wr">
                 {matches ?
-                  <DoubleScrollbar childRef={ref => matchesRef = ref} updateScroll={ref => updateScroll.current = ref} init={() => updateScroll.current()}>
-                    <div id="matches" onScroll={() => updateScroll.current()}>
-                      <Matches matches={matches} summonerId={summoner.summonerId} />
-                    </div>
-                  </DoubleScrollbar>
+                  matches.length ?
+                    <DoubleScrollbar childRef={ref => matchesRef = ref} updateScroll={ref => updateScroll.current = ref} init={() => updateScroll.current()}>
+                      <div id="matches" onScroll={() => updateScroll.current()}>
+                        <Matches matches={matches} summonerId={summoner.summonerId} />
+                      </div>
+                    </DoubleScrollbar>
+                  : <div className="status">No results</div>
                 : <div className="status">Matches loading<Loading /></div>}
               </div>
             </div>

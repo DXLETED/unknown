@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
+import { classnames } from 'classnames'
 
 export const Switch = (props) => {
   const settings = useSelector(state => state.settings)
@@ -9,8 +10,7 @@ export const Switch = (props) => {
   }
   useEffect(() => {
     if (!(props.akey in settings)) {
-      console.log(settings)
-      typeof props.defaultValue !== 'undefined' ? dispatch({type: 'UPDATE_SETTINGS', data: {[props.akey]: defaultValue}}) : dispatch({type: 'UPDATE_SETTINGS', data: {[props.akey]: false}})
+      typeof props.defaultValue !== 'undefined' ? dispatch({type: 'UPDATE_SETTINGS', data: {[props.akey]: props.defaultValue}}) : dispatch({type: 'UPDATE_SETTINGS', data: {[props.akey]: false}})
     }
   }, [])
   return (
@@ -44,5 +44,21 @@ export const SwitchMenu = props => {
       <div className="headline" onClick={update}><img src="/static/img/arrow/white_right.png" />{props.headline}</div>
       <div className="dropdown" style={style}>{props.children}</div>
     </div>
+  )
+}
+
+export const toggleSwitch = props => {
+  const settings = useSelector(state => state.settings)
+  const dispatch = useDispatch()
+  const update = i => {
+    dispatch({type: 'UPDATE_SETTINGS', data: {[props.akey]: i}})
+  }
+  useEffect(() => {
+    if (!(props.akey in settings)) {
+      typeof props.defaultValue !== 'undefined' ? dispatch({type: 'UPDATE_SETTINGS', data: {[props.akey]: props.defaultValue}}) : dispatch({type: 'UPDATE_SETTINGS', data: {[props.akey]: 0}})
+    }
+  }, [])
+  return (
+    <div className="toggleswitch">{props.vars.map((v, i) => <div className={classnames('select', {active: settings[props.akey] === i})} onClick={() => update(i)} key={i}>{v}</div>)}</div>
   )
 }

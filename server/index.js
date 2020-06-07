@@ -4,6 +4,8 @@ const assert = require('assert')
 const expressWs = require('express-ws')(app)
 const session = require('express-session')
 const bodyParser = require('body-parser')
+const cookieParser = require('cookie-parser')
+const cbtKey = require('./constants/key')
 const mongoose = require('mongoose')
 const cron = require('node-cron')
 const MongoClient = require('mongodb').MongoClient
@@ -26,14 +28,33 @@ const store = require('./store')
   champions = Object.fromEntries(Object.entries(champions).filter(([lang, champs]) => champs).map(([lang, champs]) => [lang, JSON.parse(champs).data]))
   champions = Object.fromEntries(Object.values(champions.en_US).map(champ => [champ.key, Object.values(champions).map(champs => champs[champ.id].name)]))
   fs.promises.writeFile(__dirname + '/../static/data/championLocals.json', JSON.stringify(champions))
+  champions = Object.fromEntries(await Promise.all(languages.map(lang => fs.existsSync(__dirname + `/../static/data/${lang}/championFull.json`) ? new Promise(async res => res([lang, await fs.promises.readFile(__dirname + `/../static/data/${lang}/championFull.json`, 'utf8')])) : [])))
+  champions = Object.fromEntries(Object.entries(champions).filter(([lang, champs]) => champs).map(([lang, champs]) => [lang, Object.fromEntries(Object.entries(JSON.parse(champs).data).map(([champId, c]) => [parseInt(c.key), {
+      key: c.key,
+      id: c.id,
+      name: c.name,
+      image: c.image,
+      tags: c.tags,
+      info: c.info,
+      stats: c.stats,
+      spells: c.spells.map(spell => {
+        delete spell.tooltip
+        delete spell.leveltip
+        return spell
+      }),
+      passive: c.passive
+    }]))]
+  ))
+  Object.entries(champions).map(async ([lang, data]) => fs.promises.writeFile(__dirname + `/../static/data/${lang}/champions.json`, JSON.stringify(data)))
   //champions = champions.map(champs => JSON.parse(champs))
 
   app
 
   .use(require('cors')())
-  .use(require('morgan')('dev'))
+  .use(require('morgan')('dev', {skip: (req, res) => req.originalUrl.startsWith('/static')}))
   .use(bodyParser.json())
   .use(bodyParser.urlencoded({ extended: true }))
+  .use(cookieParser())
   .use(session({ secret: 'passport-tutorial', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false }))
 
   .use('/static/', express.static('static/'))
@@ -43,7 +64,10 @@ const store = require('./store')
   .use('/ws/', require('./ws'))
 
   .get('*', function (req, res) {
-    res.sendFile(__dirname + '/index.html')
+    if (req.cookies.cbtKey === cbtKey)
+      res.sendFile(__dirname + '/index.html')
+    else
+      res.sendFile(__dirname + '/closed.html')
   })
 
   .listen(80)

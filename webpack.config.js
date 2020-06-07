@@ -3,10 +3,13 @@ const StringReplacePlugin = require("string-replace-webpack-plugin")
 const path = require('path')
 
 module.exports = {
-  entry: "./src/app.js",
+  entry: {
+    'main': "./src/app.js",
+    'init': './src/init.js'
+  },
   mode: "development",
   output: {
-    filename: "main.js",
+    filename: "[name].js",
     path: path.resolve(__dirname, 'static/js/')
   },
   module: {

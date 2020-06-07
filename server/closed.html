@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>CLOSED BETA</title>
+  <style>
+    html, body {
+      padding: 0;
+      margin: 0;
+    }
+    body {
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      background: #202124;
+      font-family: 'Roboto';
+    }
+    .alert {
+      display: flex;
+      position: relative;
+      width: 100%;
+      height: 20vh;
+      font-size: 2.4vh;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #939393;
+    }
+    .cbt {
+      margin-bottom: 3vh;
+      pointer-events: none;
+    }
+    input {
+      width: 50%;
+      background: none;
+      border: none;
+      border-bottom: 0.2vh solid #202124;
+      text-align: center;
+      font: inherit;
+    }
+    input:focus {
+      outline: none;
+    }
+    #tooltip {
+      position: absolute;
+      bottom: 2vh;
+      margin-top: 2vh;
+      font-size: 1.8vh;
+      color: #535353;
+      pointer-events: none;
+      visibility: hidden;
+    }
+    #tooltip.visible {
+      visibility: visible;
+    }
+    @font-face{
+      font-family: 'Roboto';
+      src: url('/static/fonts/Roboto-Bold.ttf');
+    }
+  </style>
+</head>
+<body>
+  <div class="alert">
+    <div class="cbt">CLOSED BETA TESTING</div>
+    <input id="input" placeholder="CBT-****-****-****-****-****-****" />
+    <div id="tooltip">Press ENTER to confirm</div>
+  </div>
+  <script src="/static/js/cookie.js"></script>
+  <script>
+    document.getElementById('input').addEventListener('keyup', e => {
+      if (e.target.value.length)
+        document.getElementById('tooltip').classList.add('visible')
+      else
+        document.getElementById('tooltip').classList.remove('visible')
+      if (e.keyCode === 13) {
+        Cookies.set('cbtKey', e.target.value, { expires: 28 })
+        document.location.reload(true)
+      }
+    })
+    document.getElementById('input').focus()
+  </script>
+</body>
+</html>

@@ -36,6 +36,15 @@ const deleteLiveMatch = (plf, gameId) => {
   //wsm.send(`live-${plf}-${gameId}`, {})
 }
 
+const getPosition = (pl, team) =>
+  Object.keys(pl.positions).sort((a, b) => pl.positions[a] < pl.positions[b] ? 1 : -1)
+    .find(pos =>
+      !Object.values(team).find(el => el.position == pos) &&
+      pl.positions[pos] >= Math.max.apply(null, team.map(summ =>
+        summ.positions[pos] == Math.max.apply(null, Object.values(summ.positions)) ? summ.positions[pos] : 0
+      ))
+    ) || Object.keys(pl.positions).sort((a, b) => pl.positions[a] < pl.positions[b] ? 1 : -1).find(pos => !(team.find(p => pos === p.position)))
+
 const liveMatch = async (plf, summoner, matchInfo) => {
   let gameId = matchInfo.gameId
   if (gameId in liveMatches[plf] && !liveMatches[plf][gameId].loadstatus.ended)
@@ -58,13 +67,7 @@ const liveMatch = async (plf, summoner, matchInfo) => {
     r.teams['team' + el.teamId / 100][el.teamId == 100 ? i : i - 5] = {
       ...el,
       id: el.teamId == 100 ? i : i - 5,
-      position: Object.keys(el.positions).sort((a, b) => el.positions[a] < el.positions[b] ? 1 : -1)
-        .find(pos => 
-          !Object.values(r.teams['team' + el.teamId / 100]).find(el => el.position == pos) &&
-          el.positions[pos] >= Math.max.apply(null, r.teams['team' + el.teamId / 100].map(summ => 
-            summ.positions[pos] == Math.max.apply(null, Object.values(summ.positions)) ? summ.positions[pos] : 0
-          ))
-        )
+      position: getPosition(el, r.teams['team' + el.teamId / 100])
     }
   })
   if (!liveMatches[gameId] || !liveMatches[gameId].loadstatus.match)
@@ -201,13 +204,7 @@ module.exports.summonerProfile = async (rg, summonerName) => {
         for (let [ii, pl] of m.match.participants.entries()) {
           matches[i].match.participants[ii] = {
             ...pl,
-            position: Object.keys(pl.positions).sort((a, b) => pl.positions[a] < pl.positions[b] ? 1 : -1)
-              .find(pos =>
-                !Object.values(m.match.participants.filter(p => p.teamId === pl.teamId)).find(el => el.position == pos) &&
-                pl.positions[pos] >= Math.max.apply(null, m.match.participants.filter(p => p.teamId === pl.teamId).map(summ =>
-                  summ.positions[pos] == Math.max.apply(null, Object.values(summ.positions)) ? summ.positions[pos] : 0
-                ))
-              ) || Object.keys(pl.positions).sort((a, b) => pl.positions[a] < pl.positions[b] ? 1 : -1).find(pos => !(m.match.participants.filter(p => p.teamId === pl.teamId).find(p => pos === p.position)))
+            position: getPosition(pl, m.match.participants.filter(p => p.teamId === pl.teamId))
           }
         }
       }

@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux'
 import { DraggableCore } from 'react-draggable'
 import { colors } from './colorlist'
 import Settings from './settings'
-import { useParams, useLocation } from 'react-router'
+import { useParams, useLocation, Route } from 'react-router'
 import classnames  from 'classnames'
 import { cssRh } from './components/cssvars'
 import { rankColor } from './constants/colorRanks'
@@ -121,7 +121,7 @@ const Player = (props) => {
   )
 }
 
-const Live = () => {
+const LiveMatch = () => {
   let { rg, summonerName } = useParams()
   let location = useLocation()
   let [matchInfo, setMatchInfo] = useState({})
@@ -169,8 +169,7 @@ const Live = () => {
   }
   console.log(visibility)
   return (
-    <div id="live" className="page">
-      {matchInfo.loadstatus && matchInfo.loadstatus.match ?
+      matchInfo.loadstatus && matchInfo.loadstatus.match ?
         <main>
           {matchInfo.loadstatus && matchInfo.loadstatus.match &&
             <>
@@ -229,7 +228,7 @@ const Live = () => {
                   }
                   let [orderKey, orderStats] = Object.entries(assets.championStats[user.championId].skillOrders)[0]
                   let order = JSON.parse(orderKey)
-                  let spells = Object.values(assets.champions.data).find(champ => champ.key == user.championId).spells
+                  let spells = Object.values(assets.champions).find(champ => champ.key == user.championId).spells
                   return (
                     order && spells && <>
                       <div className="abilities">
@@ -239,8 +238,8 @@ const Live = () => {
                         <div className="ability R"><img src={`/static/img/spell/${spells[3].image.full}`} />{[...Array(15)].map((el, i) => <div className={classnames({use: order[i] === 4})}>{order[i] === 4 && 'R'}</div>)}</div>
                       </div>
                       <div className="skill-order-stats">
-                        <div className="pickrate">Pickrate: {parseFloat((orderStats.pickrate * 100).toFixed(2))}%</div>
-                        <div className="winrate">Winrate: {parseFloat((orderStats.winrate * 100).toFixed(2))}%</div>
+                        <div className="pickrate"><img src="/static/img/done.png" />{parseFloat((orderStats.pickrate * 100).toFixed(2))}%</div>
+                        <div className="winrate"><img src="/static/img/star-wh.png" />{parseFloat((orderStats.winrate * 100).toFixed(2))}%</div>
                       </div>
                     </>
                   )
@@ -272,9 +271,37 @@ const Live = () => {
             </div>
           </div>
         </main>
-      : <div className="status">{error ? fetchError(error) : <>Loading match<Loading /></>}</div>}
-    </div>
+      : <div className="status">{error ? fetchError(error) : <>Loading match<Loading /></>}</div>
   )
 }
 
-export { Live }
+const LiveMatchList = () => {
+  const [matchList, setMatchList] = useState()
+  const [error, setError] = useState()
+  useEffect(() => {
+    fetch('/api/v1/liveMatches')
+      .then(res => res.json())
+      .then(res => {
+        return setMatchList([])
+        if (res.status === 200) {
+          setMatchList(res.d)
+        }
+      })
+  }, [])
+  return matchList ?
+      matchList.length ?
+      <div></div>
+      : <div className="status">No tracked matches</div>
+    : <div className="status">{error ? fetchError(error) : <>Loading match<Loading /></>}</div>
+}
+
+export const Live = () => {
+  return (
+    <>
+      <div id="live" className="page">
+        <Route exact path="/live" component={LiveMatchList} />
+        <Route path="/live/:rg/:summonerName" component={LiveMatch} />
+      </div>
+    </>
+  )
+}

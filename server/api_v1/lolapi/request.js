@@ -6,7 +6,7 @@ const sleep = require('../../utils/sleep')
 const store = require('../../store')
 
 let riotapikey = store.getState().riotapikey
-store.subscribe(() => key = store.getState().riotapikey)
+store.subscribe(() => riotapikey = store.getState().riotapikey)
 
 class Request {
   constructor() {

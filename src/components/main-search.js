@@ -21,17 +21,14 @@ export const MainOverlay = props => {
   const setPosMouse = data => setPos({...data, scroll: false})
   const setPosKb = data => setPos({...data, scroll: true})
   let searchResultsRef = useRef()
-  let refs = useRef({items: [], summoners: []})
+  let refs = useRef({summoners: [], champions: [], items: []})
   let scrollTopRef = useRef(0)
   let mouseLock = useRef(false)
   let updateScroll = useRef()
   let loadSummoners = useRef()
   let lastValue = useRef()
   const forceUpdate = useState()[1]
-  const [results, setResults] = useState({
-    items: [],
-    summoners: []
-  })
+  const [results, setResults] = useState({summoners: [], champions: [], items: []})
   const updateResults = data => {
     resultsRef.current = {...resultsRef.current, ...data}
     setResults(resultsRef.current)
@@ -48,10 +45,11 @@ export const MainOverlay = props => {
         case 65:
         case 37:
           if (posRef.current) {
+            let latestCat = Object.keys(resultsRef.current).slice(0, Object.keys(resultsRef.current).indexOf(posRef.current.cat) > 0 ? Object.keys(resultsRef.current).indexOf(posRef.current.cat) : 0).reverse().find(cat => resultsRef.current[cat].length)
             if (resultsRef.current[posRef.current.cat][posRef.current.i - 1])
               setPosKb({...posRef.current, i: posRef.current.i - 1})
-            else if (resultsRef.current[Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) - 1]] && resultsRef.current[Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) - 1]].length)
-              setPosKb({cat: Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) - 1], i: resultsRef.current[Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) - 1]].length - 1})
+            else if (resultsRef.current[latestCat])
+              setPosKb({cat: latestCat, i: resultsRef.current[latestCat].length - 1})
           } else
             for(let key of Object.keys(resultsRef.current))
               if (resultsRef.current[key].length) {
@@ -62,10 +60,11 @@ export const MainOverlay = props => {
         case 68:
         case 39:
           if (posRef.current) {
+            let nextCat = Object.keys(resultsRef.current).slice(Object.keys(resultsRef.current).indexOf(posRef.current.cat) + 1).find(cat => resultsRef.current[cat].length)
             if (resultsRef.current[posRef.current.cat][posRef.current.i + 1])
               setPosKb({...posRef.current, i: posRef.current.i + 1})
-            else if (resultsRef.current[Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) + 1]] && resultsRef.current[Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) + 1]].length)
-              setPosKb({cat: Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) + 1], i: 0})
+            else if (resultsRef.current[nextCat])
+              setPosKb({cat: nextCat, i: 0})
           } else
             for(let key of Object.keys(resultsRef.current))
               if (resultsRef.current[key].length) {
@@ -76,13 +75,14 @@ export const MainOverlay = props => {
         case 87:
         case 38:
           if (posRef.current) {
+            let latestCat = Object.keys(resultsRef.current).slice(0, Object.keys(resultsRef.current).indexOf(posRef.current.cat) > 0 ? Object.keys(resultsRef.current).indexOf(posRef.current.cat) : 0).reverse().find(cat => resultsRef.current[cat].length)
             if (resultsRef.current[posRef.current.cat][posRef.current.i - 3])
               setPosKb({...posRef.current, i: posRef.current.i - 3})
-            else if (resultsRef.current[Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) - 1]] && resultsRef.current[Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) - 1]].length)
-              if (resultsRef.current[Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) - 1]][Math.ceil(resultsRef.current[Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) - 1]].length / 3) * 3 + (posRef.current.i - 3)])
-                setPosKb({cat: Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) - 1], i: Math.ceil(resultsRef.current[Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) - 1]].length / 3) * 3 + (posRef.current.i - 3)})
+            else if (resultsRef.current[latestCat])
+              if (resultsRef.current[latestCat][Math.ceil(resultsRef.current[latestCat].length / 3) * 3 + (posRef.current.i - 3)])
+                setPosKb({cat: latestCat, i: Math.ceil(resultsRef.current[latestCat].length / 3) * 3 + (posRef.current.i - 3)})
               else
-                setPosKb({cat: Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) - 1], i: resultsRef.current[Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) - 1]].length - 1})
+                setPosKb({cat: latestCat, i: resultsRef.current[latestCat].length - 1})
               else {
                 setPos(null)
                 resultsFocusRef.current = false
@@ -98,15 +98,16 @@ export const MainOverlay = props => {
         case 83:
         case 40:
           if (posRef.current) {
+            let nextCat = Object.keys(resultsRef.current).slice(Object.keys(resultsRef.current).indexOf(posRef.current.cat) + 1).find(cat => resultsRef.current[cat].length)
             if (resultsRef.current[posRef.current.cat][posRef.current.i + 3])
               setPosKb({...posRef.current, i: posRef.current.i + 3})
             else if (resultsRef.current[posRef.current.cat][posRef.current.i + (3 - (posRef.current.i % 3))])
               setPosKb({...posRef.current, i: resultsRef.current[posRef.current.cat].length - 1})
-            else if (resultsRef.current[Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) + 1]] && resultsRef.current[Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) + 1]].length)
-              if (resultsRef.current[Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) + 1]][posRef.current.i - Math.floor(posRef.current.i / 3) * 3])
-                setPosKb({cat: Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) + 1], i: posRef.current.i - Math.floor(posRef.current.i / 3) * 3})
+            else if (resultsRef.current[nextCat])
+              if (resultsRef.current[nextCat][posRef.current.i - Math.floor(posRef.current.i / 3) * 3])
+                setPosKb({cat: nextCat, i: posRef.current.i - Math.floor(posRef.current.i / 3) * 3})
               else
-                setPosKb({cat: Object.keys(resultsRef.current)[Object.keys(resultsRef.current).indexOf(posRef.current.cat) + 1], i: 0})
+                setPosKb({cat: nextCat, i: 0})
           } else
             for(let key of Object.keys(resultsRef.current))
               if (resultsRef.current[key].length)
@@ -116,10 +117,14 @@ export const MainOverlay = props => {
         case 32:
           switch (posRef.current.cat) {
             case 'summoners': history.push(`/summoners/${resultsRef.current[posRef.current.cat][posRef.current.i].region}/${resultsRef.current[posRef.current.cat][posRef.current.i].summonerName}`)
+              break
+            case 'champions': history.push(`/statistics/${resultsRef.current[posRef.current.cat][posRef.current.i].id}`)
+              break
           }
           console.log(resultsRef.current[posRef.current.cat][posRef.current.i])
           break
       }
+      console.log(posRef.current)
     }
   }
   const navUp = e => {
@@ -136,11 +141,15 @@ export const MainOverlay = props => {
     if (value != lastValue.current) {
       lastValue.current = e.target.value
       clearTimeout(loadSummoners.current)
-      if (value.length < 3) {
-        return setResults({items: [], summoners: []})
+      if (value.length < 2) {
+        return setResults({summoners: [], champions: [], items: []})
       }
       updateResults({items: assets.items.filter(el => el.name.toLowerCase().includes(value.toLowerCase()) && el.inStore)})
+      updateResults({champions: Object.entries(assets.сhampionLocales).filter(([champId, champ]) => champ.find(name => name.toLowerCase().includes(value.toLowerCase()))).map(([champId, champ]) => Object.values(assets.champions.data).find(champion => champion.key === champId))})
       updateResults({summoners: []})
+      if (value.length < 3) {
+        return
+      }
       loadSummoners.current = setTimeout(() => {
         let r = []
         Promise.all(rgs.map(rg => 
@@ -152,7 +161,7 @@ export const MainOverlay = props => {
             })
             .catch(e => {console.log(e)})
         )).then(() => {
-          updateResults({summoners: r})
+          value === searchRef.current.value && updateResults({summoners: r})
         })
       }, 500)
       console.log(assets.items.filter(el => el.name.toLowerCase().includes(e.target.value.toLowerCase()) && el.inStore))
@@ -264,28 +273,6 @@ export const MainOverlay = props => {
         <DoubleScrollbar childRef={ref => searchResultsRef = ref} updateScroll={ref => updateScroll.current = ref}>
         <div id="search-results" onScroll={updateScroll.current}>
           <div className="search-results-summoners">
-            {results.items.length > 0 &&
-              <>
-                <div className="headline">
-                  <div className="title">Items</div>
-                  <div className="count">[ {results.items.length} ]</div>
-                </div>
-                <div className="list-wr">
-                  {results.items.map((el, i) =>
-                    <div className={'list-el' + (pos ? (pos.cat == 'items' && pos.i == i ? ' focus' : '') : '')} key={i} onMouseEnter={() => !mouseLock.current && setPosMouse({cat: 'items', i: i})} onMouseLeave={() => !mouseLock.current && setPos(null)} ref={refs.current.items[i] = React.createRef()}>
-                      <div className="el-icon"><img src={`http://ddragon.leagueoflegends.com/cdn/10.4.1/img/item/${el.id}.png`} /></div>
-                      <div className="el">
-                        <div className="item-name">{el.name}</div>
-                        <div className="el-info">
-                          <div className="item-from-wr">{el.from.map((el, i) => <img className="item-from" src={`http://ddragon.leagueoflegends.com/cdn/10.4.1/img/item/${el}.png`} key={i} />)}</div>
-                        </div>
-                      </div>
-                      <div className="item-price">{el.priceTotal}</div>
-                    </div>
-                  )}
-                </div>
-              </>
-            }
             {results.summoners &&
               <>
                 <div className="headline">
@@ -305,6 +292,50 @@ export const MainOverlay = props => {
                       </div>
                       <div className="profile-region">{el.region.toUpperCase()}</div>
                     </Link>
+                  )}
+                </div>
+              </>
+            }
+            {results.champions.length > 0 &&
+              <>
+                <div className="headline">
+                  <div className="title">Champions</div>
+                  <div className="count">[ {results.champions.length} ]</div>
+                </div>
+                <div className="list-wr">
+                  {results.champions.map((el, i) =>
+                    <Link to={`/statistics/${el.id}`} className={'list-el' + (pos ? (pos.cat == 'champions' && pos.i == i ? ' focus' : '') : '')} key={i} onMouseEnter={() => !mouseLock.current && setPosMouse({cat: 'champions', i: i})} onMouseLeave={() => !mouseLock.current && setPos(null)} ref={refs.current.champions[i] = React.createRef()}>
+                      <div className="el-icon"><img src={`http://ddragon.leagueoflegends.com/cdn/10.4.1/img/champion/${el.image.full}`} /></div>
+                      <div className="el">
+                        <div className="item-name">{el.name}</div>
+                        <div className="el-info">
+                          {/*<div className="item-from-wr">{el.from.map((el, i) => <img className="item-from" src={`http://ddragon.leagueoflegends.com/cdn/10.4.1/img/item/${el}.png`} key={i} />)}</div>*/}
+                        </div>
+                      </div>
+                      <div className="item-price">{el.priceTotal}</div>
+                    </Link>
+                  )}
+                </div>
+              </>
+            }
+            {results.items.length > 0 &&
+              <>
+                <div className="headline">
+                  <div className="title">Items</div>
+                  <div className="count">[ {results.items.length} ]</div>
+                </div>
+                <div className="list-wr">
+                  {results.items.map((el, i) =>
+                    <div className={'list-el' + (pos ? (pos.cat == 'items' && pos.i == i ? ' focus' : '') : '')} key={i} onMouseEnter={() => !mouseLock.current && setPosMouse({cat: 'items', i: i})} onMouseLeave={() => !mouseLock.current && setPos(null)} ref={refs.current.items[i] = React.createRef()}>
+                      <div className="el-icon"><img src={`http://ddragon.leagueoflegends.com/cdn/10.4.1/img/item/${el.id}.png`} /></div>
+                      <div className="el">
+                        <div className="item-name">{el.name}</div>
+                        <div className="el-info">
+                          <div className="item-from-wr">{el.from.map((el, i) => <img className="item-from" src={`http://ddragon.leagueoflegends.com/cdn/10.4.1/img/item/${el}.png`} key={i} />)}</div>
+                        </div>
+                      </div>
+                      <div className="item-price">{el.priceTotal}</div>
+                    </div>
                   )}
                 </div>
               </>
