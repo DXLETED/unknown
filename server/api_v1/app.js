@@ -110,7 +110,7 @@ const liveMatch = async (plf, summoner, matchInfo) => {
   return liveMatches[plf][gameId]
 }
 
-const live = async (rg, summonerName) => {
+module.exports.live = async (rg, summonerName) => {
   try {
     var plf = Api.platform(rg)
   } catch(e) {
@@ -255,4 +255,4 @@ module.exports.clearMatchAwait = (plf, summonerId) => {
   }
 })()
 
-module.exports.live = live
+module.exports.getLiveMatches = () => liveMatches

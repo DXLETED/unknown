@@ -1,83 +1,82 @@
 import './css/init.scss'
 import Axios from 'axios'
+import cookie from 'react-cookies'
 
-let script
-let loaded = {scripts: false, assets: false, images: false}
-const updateLoaded = type => {
-  loaded[type] = true
-  if (Object.values(loaded).every(Boolean)) {
-    const el = document.createElement('script')
-    el.innerHTML = script
-    //document.body.appendChild(el)
-    setTimeout(() => {
-      document.getElementById('preload').classList.add('hide')
-      //document.querySelector('.page').classList.remove('hide')
-    }, 250)
-  }
-}
+import loadList from '../static/data/loadList.json'
 
-Axios.get('/static/js/main.js', {
-  onDownloadProgress: e => {
-    document.querySelector('.scripts > .bar > .status').style.width = e.loaded / e.total * 100 + '%'
+global.assets = {}
+window.images = []
+
+window.onload = () => {
+  let script
+  let loaded = {scripts: false, assets: false, images: false}
+  const updateLoaded = type => {
+    loaded[type] = true
+    if (Object.values(loaded).every(Boolean)) {
+      const el = document.createElement('script')
+      el.innerHTML = script
+      el.setAttribute('src', '/static/js/main.js')
+      document.body.appendChild(el)
+      setTimeout(() => {
+        document.getElementById('preload').classList.add('hide')
+      }, 250)
+    }
   }
-})
-  .then(res => {
-    script = res.data
-    updateLoaded('scripts')
+
+  Axios.get('/static/js/main.js', {
+    onDownloadProgress: e => {
+      document.querySelector('.scripts > .bar > .status').style.width = e.loaded / e.total * 100 + '%'
+    }
   })
+    .then(res => {
+      script = res.data
+      updateLoaded('scripts')
+    })
 
-let srcs = {
-  champions: '/static/data/en_US/champions.json',
-  сhampionLocales: '/static/data/championLocales.json',
-  items: 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/items.json',
-  runes: '/static/json/runesReforged.json',
-  championStats: '/api/v1/stats/championsFull'
-}
-
-let assets = {}
-Promise.all(Object.keys(srcs).map(el => {
-    return Axios.get(srcs[el], {
+  let assetsLoaded = []
+  let assetsLength
+  Promise.all(Object.values(loadList.assets).map(src =>
+    Axios.head(src)
+  ))
+    .then(ress => assetsLength = ress.map(res => parseInt(res.headers['content-length'])).reduce((x, y) => x + y))
+  Promise.all(Object.entries(loadList.assets).map(([title, src], i) => {
+    return Axios.get(src, {
+      responseType: 'json',
       onDownloadProgress: e => {
-        document.querySelector('.assets > .bar > .status').style.width = e.loaded / e.total * 100 + '%'
+        assetsLoaded[i] = e.loaded
+        if (assetsLength)
+          document.querySelector('.assets > .bar > .status').style.width = assetsLoaded.reduce((x, y) => x + y) / assetsLength * 100 + '%'
       }
     })
-      .then(res => assets[el] = res.data)
-  })
-).then(() => {
-  updateLoaded('assets')
-})
-
-updateLoaded('images')
-let imgsrcs = [
-  '/static/img/pattern.png',
-  '/static/img/done.png',
-  '/static/img/banned-wh.png',
-  '/static/img/cs.png',
-  '/static/img/star-wh.png',
-  '/static/img/ward.png',
-  '/static/img/arrow/white_down.png',
-  '/static/img/arrow/white_right.png',
-  '/static/img/arrow/white_up.png',
-  '/static/img/header/language.png',
-  '/static/img/header/menu_white.png',
-  '/static/img/header/settings_white.png'
-]
-window.images = []
-let imgLoaded = []
-let imgTotal = []
-Promise.all(
-  imgsrcs.map((asset, i) => {
-    return Axios.get(asset, {
-      onDownloadProgress: (e) => {
-        imgLoaded[i] = e.loaded
-        imgTotal[i] = e.total
-        document.querySelector('.images > .bar > .status').style.width = imgLoaded.reduce((x, y) => x + y) / imgTotal.reduce((x, y) => x + y) * 100 + '%'
-      }})
-      .then(res => {
-        let img = new Image()
-        img.src = asset
-        window.images.push(img)
-      })
-  })
-)
-  .then(() => updateLoaded('images'))
+      .then(res => global.assets[title] = res.data)
+  }))
+    .then(() => {
+      updateLoaded('assets')
+    })
+  
+  let settings = cookie.load('settings')
+  if (settings && 'bgimage' in settings)
+    loadList.images.push(`/static/img/main-bg/${settings.bgimage}.jpg`)
+  else
+    loadList.images.push(`/static/img/main-bg/0.jpg`)
+  let imgLoaded = 0
+  let imgLength = {}
+  Promise.all(Object.values(loadList.images).map(src =>
+    Axios.head(src)
+  ))
+    .then(ress => ress.map(res => imgLength[res.config.url] = parseInt(res.headers['content-length'])))
+    .then(() => {
+      Promise.all(
+        loadList.images.map((src, i) => {
+          let img = new Image()
+          img.src = src
+          img.onload = () => {
+            imgLoaded += imgLength[src]
+            document.querySelector('.images > .bar > .status').style.width = imgLoaded / Object.values(imgLength).reduce((x, y) => x + y) * 100 + '%'
+          }
+          window.images.push(img)
+        })
+      )
+        .then(() => updateLoaded('images'))
+    })
+}

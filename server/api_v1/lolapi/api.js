@@ -32,7 +32,7 @@ class Api {
         if (!(/^[\w\. ]+$/.test(d))) {
           return {status: 400, error: 'api-wrname'}
         }*/
-        let cache = await db.collection(`summoners-${plf}`).findOne({summonerName: new RegExp(data, 'i')}, {projection: {_id: 0}})
+        let cache = await db.collection(`summoners-${plf}`).findOne({summonerName: new RegExp(['^', d, '$'].join(''), 'i')}, {projection: {_id: 0}})
         if (typeof cache !== 'undefined' && cache !== null) {
           r[i] = {status: 200, data: {summonerId: cache.summonerId, summonerName: cache.summonerName}}
           continue
@@ -43,7 +43,6 @@ class Api {
           method: 'summoner/by-name'
         })
       }
-      console.log(urls)
       if (urls.length){
         let loaded = await request.multiple(urls)
         await db.collection(`summoners-${plf}`).insertMany(loaded.filter(el => el.status == 200).map(el => {return {...el, data: {
@@ -64,7 +63,7 @@ class Api {
       if (!(/^[\w\. ]+$/.test(data))) {
         return {status: 400, error: 'api-wrname'}
       }*/
-      let cache = await db.collection(`summoners-${plf}`).findOne({summonerName: new RegExp(data, 'i')}, {projection: {_id: 0}})
+      let cache = await db.collection(`summoners-${plf}`).findOne({summonerName: new RegExp(['^', data, '$'].join(''), 'i')}, {projection: {_id: 0}})
       if (cache) return {status: 200, data: {summonerId: cache.summonerId, summonerName: cache.summonerName}}
       r = await request.single(`https://${plf}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURI(data)}`, plf, 'summoner/by-name')
       if (r.status >= 400) {
@@ -86,8 +85,7 @@ class Api {
     return r
   }
   async accountByName(plf, data) {
-    console.log(`https://${plf}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURI(data)}`)
-    let cache = await db.collection(`summoners-${plf}`).findOne({summonerName: new RegExp(data, 'i')}, {projection: {_id: 0}})
+    let cache = await db.collection(`summoners-${plf}`).findOne({summonerName: new RegExp(['^', data, '$'].join(''), 'i')}, {projection: {_id: 0}})
     if (cache && 'accountId' in cache && 'summonerLevel' in cache && 'profileIconId' in cache)
       return {status: 200, data: cache}
     let r = await request.single(`https://${plf}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURI(data)}`, plf, 'summoner/by-name')

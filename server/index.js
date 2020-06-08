@@ -9,7 +9,6 @@ const cbtKey = require('./constants/key')
 const mongoose = require('mongoose')
 const cron = require('node-cron')
 const MongoClient = require('mongodb').MongoClient
-const fs = require('fs')
 let db
 
 mongoose.connect('mongodb://localhost/users', {useNewUrlParser: true, useUnifiedTopology: true})
@@ -23,30 +22,6 @@ const store = require('./store')
   require('./db').set(client.db('test'), client)
   db = require('./db')()
   store.dispatch({type: 'UPDATE_RIOTAPIKEY', data: (await db.collection('config').findOne({key: 'riotapi_key'})).value})
-  let languages = require('../static/data/languages')
-  let champions = Object.fromEntries(await Promise.all(languages.map(lang => fs.existsSync(__dirname + `/../static/data/${lang}/champion.json`) ? new Promise(async res => res([lang, await fs.promises.readFile(__dirname + `/../static/data/${lang}/champion.json`, 'utf8')])) : [])))
-  champions = Object.fromEntries(Object.entries(champions).filter(([lang, champs]) => champs).map(([lang, champs]) => [lang, JSON.parse(champs).data]))
-  champions = Object.fromEntries(Object.values(champions.en_US).map(champ => [champ.key, Object.values(champions).map(champs => champs[champ.id].name)]))
-  fs.promises.writeFile(__dirname + '/../static/data/championLocals.json', JSON.stringify(champions))
-  champions = Object.fromEntries(await Promise.all(languages.map(lang => fs.existsSync(__dirname + `/../static/data/${lang}/championFull.json`) ? new Promise(async res => res([lang, await fs.promises.readFile(__dirname + `/../static/data/${lang}/championFull.json`, 'utf8')])) : [])))
-  champions = Object.fromEntries(Object.entries(champions).filter(([lang, champs]) => champs).map(([lang, champs]) => [lang, Object.fromEntries(Object.entries(JSON.parse(champs).data).map(([champId, c]) => [parseInt(c.key), {
-      key: c.key,
-      id: c.id,
-      name: c.name,
-      image: c.image,
-      tags: c.tags,
-      info: c.info,
-      stats: c.stats,
-      spells: c.spells.map(spell => {
-        delete spell.tooltip
-        delete spell.leveltip
-        return spell
-      }),
-      passive: c.passive
-    }]))]
-  ))
-  Object.entries(champions).map(async ([lang, data]) => fs.promises.writeFile(__dirname + `/../static/data/${lang}/champions.json`, JSON.stringify(data)))
-  //champions = champions.map(champs => JSON.parse(champs))
 
   app
 

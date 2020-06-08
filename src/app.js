@@ -6,7 +6,6 @@ import { createStore, bindActionCreators, applyMiddleware } from 'redux'
 import { connect, Provider, useSelector } from 'react-redux'
 import { BrowserRouter as Router, Route, Switch as RouterSwitch } from 'react-router-dom'
 
-import assets, { cpl } from './assets'
 import { Header } from './modules/header'
 import { MainOverlay } from './components/main-search'
 import { Live } from './live'
@@ -46,7 +45,7 @@ import Axios from 'axios'
 cookieSync(store, ['settings'])
 
 window.images = []
-const assetsLoader = (assets) => {
+/*const assetsLoader = (assets) => {
   let loaded = []
   let total = []
   let loadedCount = 0
@@ -70,7 +69,7 @@ const assetsLoader = (assets) => {
         })
     })
   )
-}
+}*/
 
 const MainPage = () => {
   const settings = useSelector(state => state.settings)
@@ -99,24 +98,32 @@ const MainPage = () => {
   )
 }
 
-let imgsrcs = []
-imgsrcs.push(`/static/img/main-bg/${store.getState().settings.bgimage}.jpg`,
-  '/static/img/pattern.png',
-  '/static/img/done.png',
-  '/static/img/banned-wh.png',
-  '/static/img/cs.png',
-  '/static/img/star-wh.png',
-  '/static/img/ward.png',
-  '/static/img/arrow/white_down.png',
-  '/static/img/arrow/white_right.png',
-  '/static/img/arrow/white_up.png',
-  '/static/img/header/language.png',
-  '/static/img/header/menu_white.png',
-  '/static/img/header/settings_white.png'
-)
-
 const Main = () => {
-  console.log(assets)
+  useEffect(() => {
+    if (store.getState().settings.imgpreload !== false) {
+      let imgStage2 = Object.values(assets.champions).map(champ => [`/static/img/champion-splashes/${champ.key}.jpg`, `/static/img/champion/${champ.image.full}`]).flat()
+      let imgLoaded = 0
+      let imgLength = {}
+      Promise.all(Object.values(imgStage2).map(src =>
+        Axios.head(src)
+      ))
+        .then(ress => ress.map(res => imgLength[res.config.url] = parseInt(res.headers['content-length'])))
+        .then(() => {
+          Promise.all(
+            imgStage2.map((src, i) => {
+              let img = new Image()
+              img.src = src
+              img.onload = () => {
+                imgLoaded += imgLength[src]
+                store.dispatch({type: 'UPDATE_LOADING', data: imgLoaded / Object.values(imgLength).reduce((x, y) => x + y)})
+              }
+              window.images.push(img)
+            })
+          )
+        })
+    }
+    document.querySelector('.page').classList.remove('hide')
+  }, [])
   return (
     <Provider store={store}>
       <Router>
@@ -129,8 +136,5 @@ const Main = () => {
     </Provider>
   )
 }
-Promise.all([cpl, assetsLoader(imgsrcs)]).then(() => {
-  ReactDOM.render(<Main />, document.getElementsByTagName('root')[0])
-  //let imgStage2 = Object.values(assets.champions).map(champ => `/static/img/champion-splashes/${champ.key}.jpg`)
-  //assetsLoader(imgStage2)
-})
+console.log(assets)
+ReactDOM.render(<Main />, document.getElementsByTagName('root')[0])

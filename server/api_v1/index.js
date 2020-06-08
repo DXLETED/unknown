@@ -102,6 +102,23 @@ router
   }
 })
 
+.get('/liveMatches/', async (req, res) => {
+  res.json({status: 200, d: Object.values(app.getLiveMatches())
+    .filter(plfLM => Object.values(plfLM).length && Object.values(plfLM).find(m => m.status === 200 && m.loadstatus.match))
+    .map(plfLM => Object.values(plfLM)
+      .filter(m => m.status === 200 && m.loadstatus.match)
+      .map(m => {return {
+        plf: m.plf,
+        participants: m.d.matchInfo.participants.map(p => {return {
+          summonerName: p.summonerName,
+          championId: p.championId,
+          teamId: p.teamId
+        }})
+      }})
+    ).flat()
+  })
+})
+
 .get('/summoner/:rg/:summonerName', async (req, res) => {
   //return res.json({"status":200,"data":{"_id":"5e7663f8b6e0632520c69b13","summonerId":"Png-LclA14EcvjHPJrLI17xGgMvaUX3PDuvX5VSThVHTzw","summonerName":"DruzhokK","rank":"II","tier":"DIAMOND","wins":97,"losses":105,"leaguePoints":0,"leagues":{"2020-2-15":{"tier":"DIAMOND","rank":"II","wins":96,"losses":104,"leaguePoints":0},"2020-2-16":{"tier":"DIAMOND","rank":"II","wins":96,"losses":104,"leaguePoints":0},"2020-2-17":{"tier":"DIAMOND","rank":"II","wins":96,"losses":104,"leaguePoints":0},"2020-2-21":{"tier":"DIAMOND","rank":"II","wins":97,"losses":105,"leaguePoints":0}},"accountId":"3iI6-jZFD_RzN_KTTO-7SWvdGI51NtXF8kAZ8pekTr_w-Fw","profileIconId":1384,"summonerLevel":191}})
   res.json(await app.summoner(req.params.rg, req.params.summonerName))

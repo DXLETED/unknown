@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef, forceUpdate, useCallback } from 'react'
 import ReactDOM from 'react-dom'
-import assets from '../assets'
 import { cssRh } from './cssvars'
 import Velocity from 'velocity-animate'
 import { DoubleScrollbar } from './double-scrollbar'
 import { NavLink as Link, useHistory } from 'react-router-dom'
 import rgs from './regions'
-console.log(assets)
 
 export const MainOverlay = props => {
   const [focus, setFocus] = useState(false)
@@ -145,7 +143,7 @@ export const MainOverlay = props => {
         return setResults({summoners: [], champions: [], items: []})
       }
       updateResults({items: assets.items.filter(el => el.name.toLowerCase().includes(value.toLowerCase()) && el.inStore)})
-      updateResults({champions: Object.entries(assets.сhampionLocales).filter(([champId, champ]) => champ.find(name => name.toLowerCase().includes(value.toLowerCase()))).map(([champId, champ]) => Object.values(assets.champions.data).find(champion => champion.key === champId))})
+      updateResults({champions: Object.values(assets.champions).filter(champ => assets.championStats[champ.key]).filter(champ => assets.championLocales[champ.key].find(name => name.toLowerCase().includes(value.toLowerCase())))})
       updateResults({summoners: []})
       if (value.length < 3) {
         return
@@ -164,7 +162,6 @@ export const MainOverlay = props => {
           value === searchRef.current.value && updateResults({summoners: r})
         })
       }, 500)
-      console.log(assets.items.filter(el => el.name.toLowerCase().includes(e.target.value.toLowerCase()) && el.inStore))
     } 
     switch (e.keyCode) {
       case 40:

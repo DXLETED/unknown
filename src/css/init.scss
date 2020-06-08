@@ -44,26 +44,27 @@ body {
   z-index: 100;
   opacity: 1;
   visibility: visible;
-  transition: 1s opacity linear, 1s visibility step-end;
+  transition: 0.5s opacity linear, 0.5s visibility step-end;
   &.hide {
     opacity: 0;
     visibility: hidden;
   }
   > .sitename {
     font-family: 'DH';
-    font-size: 4.5vh;
-    margin-bottom: 2vh;
+    font-size: 4.5rh;
+    margin-bottom: 2rh;
   }
   > .loadstatus {
-    width: 40vh;
+    width: 40rh;
+    font-size: 1.6rh;
     flex-direction: column;
-    margin-bottom: 2vh;
+    margin-bottom: 2rh;
     > .title {
-      margin-bottom: 0.5vh;
+      margin-bottom: 0.5rh;
     }
     > .bar {
       width: 100%;
-      height: 0.5vh;
+      height: 0.5rh;
       background: $dmain;
     }
     &.scripts {

@@ -14,7 +14,6 @@ import moment from 'moment'
 import { DoubleScrollbar } from '../components/double-scrollbar'
 import { positions } from '../constants/positions'
 import { queues } from '../constants/queues'
-import assets from '../assets'
 import { NavLink as Link } from 'react-router-dom'
 import { Loading } from '../components/loading'
 
@@ -25,7 +24,6 @@ const Matches = props => {
         let user = m.match.participants.find(p => p.participantId === m.match.participantIdentities.find(p2 => p2.player.summonerId === props.summonerId).participantId)
         let img = `/static/img/champion-splashes/${user.championId}.jpg`
         let background = `linear-gradient(to right, transparent calc(100% - (var(--vh) * var(--sc) * 40)), ${colors.lmain} calc(100% - (var(--vh) * var(--sc) * 15))), url(${img}) calc(var(--vh) * var(--sc) * -10) calc(var(--vh) * var(--sc) * -2) / calc(var(--vh) * var(--sc) * 50) no-repeat`
-        console.log(user.stats.perkSubStyle)
         return <div className={classnames('match', {win: user.stats.win, fail: !user.stats.win})} key={i}>
           <div className="matchInfo">
             <div className="img" style={{background}}></div>
@@ -52,7 +50,7 @@ const Matches = props => {
               </div>
               <div className="items">
                 {Array.from(new Array(6), (_, i) => i).map((a, i) =>
-                  <img className={'item' + i} src={user.stats['item' + i] ? `http://ddragon.leagueoflegends.com/cdn/10.4.1/img/item/${user.stats['item' + i]}.png` : '/static/img/items/0.png'} />
+                  <img className={'item' + i} src={user.stats['item' + i] ? `http://ddragon.leagueoflegends.com/cdn/10.4.1/img/item/${user.stats['item' + i]}.png` : '/static/img/items/0.png'} key={i} />
                 )}
                 <div className="s"></div>
                 <img className="ward" src={`http://ddragon.leagueoflegends.com/cdn/10.4.1/img/item/${user.stats.item6}.png`} />
@@ -60,10 +58,10 @@ const Matches = props => {
             </div>
             <div className="players">
               <div className="team1">
-                {positions.map(pos => {
+                {positions.map((pos, i) => {
                   let pl = m.match.participants.filter(p => p.teamId === user.teamId).find(p => p.position === pos)
                   return (
-                    <div>
+                    <div key={i}>
                       <span className="summonerName">{m.match.participantIdentities.find(p => p.participantId === pl.participantId).player.summonerName}</span>
                       <div className="icon"><img src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${pl.championId}.png`} /></div>
                     </div>
@@ -71,15 +69,15 @@ const Matches = props => {
                 })}
               </div>
               <div className="positions">
-                {positions.map(pos => <div><img src={`/static/img/positions/${pos}.png`} /></div>
+                {positions.map((pos, i) => <div key={i}><img src={`/static/img/positions/${pos}.png`} /></div>
                 )}
               </div>
               <div className="team2">
-                {positions.map(pos => {
+                {positions.map((pos, i) => {
                   let pl = m.match.participants.filter(p => p.teamId !== user.teamId).find(p => p.position === pos)
                   if (!pl) console.log(m.match)
                   return (
-                    <div>
+                    <div key={i}>
                       <div className="icon"><img src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${pl.championId}.png`} /></div>
                       <span className="summonerName">{m.match.participantIdentities.find(p => p.participantId === pl.participantId).player.summonerName}</span>
                     </div>
@@ -169,7 +167,6 @@ const Summoners = () => {
       //return {pos: [intLeague(last.tier, last.rank, last.leaguePoints), intLeague(current.tier, current.rank, current.leaguePoints)], colors: last.tier == current.tier ? rankColor[current.tier] : [rankColor[last.tier], rankColor[current.tier]]}
       return {pos: [intLeague(last.tier, last.rank, last.leaguePoints) - minIntLeague, intLeague(current.tier, current.rank, current.leaguePoints) - minIntLeague], days: i - lastDay, bgs: Object.keys(bgs).length > 1 ? `linear-gradient(to top, ${Object.keys(bgs).map(el => `${rankColor[el]}, ${rankColor[el]} ${bgs[el] / (maxIntLeague - minIntLeague) * 100}%`)})` : rankColor[Object.keys(bgs)[0]]}
     })
-    console.log(leagueGraph)
   }
   return (
     <div id="summoners" className="page" ref={mainRef}>
@@ -215,7 +212,7 @@ const Summoners = () => {
                         <polyline points = "0,10 100,15" stroke="#996f4c" strokeWidth="3"/>
                       </svg>*/}
                       {leagueGraph && leagueGraph.map((el, i) => el.days ? (
-                        <div className="graph-chunk" style={{flex: `${el.days}`}}>
+                        <div className="graph-chunk" style={{flex: `${el.days}`}} key={i}>
                           <div className="line" style={{background: el.bgs, clipPath: `polygon(0% 100%, 0% ${Math.abs(el.pos[0] / (maxIntLeague - minIntLeague) * 60 - 100) - 20}%, 100% ${Math.abs(el.pos[1] / (maxIntLeague - minIntLeague) * 60 - 100) - 20}%, 100% 100%)`}}></div>
                         </div>
                       ) : null)}
@@ -227,10 +224,10 @@ const Summoners = () => {
                 {mainPos ?
                   <div id="calendar">
                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayI) => 
-                      <div className="day">
+                      <div className="day" key={dayI}>
                         <div className="dayname">{day}</div>
                         <div className="graph">
-                          {Array.apply(null, {length: 5}).map((el, i) => i == 0 ? (curDay < dayI + 1 ? <div className="rect"></div> : <div className="rect inv"></div>) : i == 4 ? (curDay >= dayI + 1 ? <div className="rect"></div> : <div className="rect inv"></div>) : <div className="rect"></div>)}
+                          {Array.apply(null, {length: 5}).map((el, i) => i == 0 ? (curDay < dayI + 1 ? <div className="rect" key={i}></div> : <div className="rect inv" key={i}></div>) : i == 4 ? (curDay >= dayI + 1 ? <div className="rect" key={i}></div> : <div className="rect inv" key={i}></div>) : <div className="rect" key={i}></div>)}
                         </div>
                       </div>
                     )}

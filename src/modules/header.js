@@ -60,7 +60,6 @@ const Limits = () => {
     limRef.current = limits
   }, [limits])
   if (limits) {
-    console.log(Object.keys(regions)[settings.limitsRegion])
     let methods = limits.regions[rg]
     let r = []
     for (let mtd in methods) {
@@ -100,20 +99,6 @@ const RiotApiKey = () => {
 const Header = () => {
   let settings = useSelector(state => state.settings)
   const dispatch = useDispatch()
-  let location = useLocation()
-  let location1 = useLocation1('/live/:id/')
-  useEffect(() => {
-    console.log(location.pathname, window.location.pathname.split('/'))
-  }, [location])
-  useEffect(() => {
-    console.log(22, location1)
-  }, [location1])
-  useEffect(() => {
-    console.log('Header', settings)
-    return () => {
-      // componentWillUnmount
-    }
-  })
   return (
     <header>
       <div id="header">

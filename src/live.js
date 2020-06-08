@@ -9,7 +9,6 @@ import { cssRh } from './components/cssvars'
 import { rankColor } from './constants/colorRanks'
 import { shortTiers } from './constants/shortTiers'
 import { Loading } from './components/loading'
-import assets from './assets'
 import { fetchError } from './fetcherror'
 
 const Player = (props) => {
@@ -232,10 +231,10 @@ const LiveMatch = () => {
                   return (
                     order && spells && <>
                       <div className="abilities">
-                        <div className="ability Q"><img src={`/static/img/spell/${spells[0].image.full}`} />{[...Array(15)].map((el, i) => <div className={classnames({use: order[i] === 1})}>{order[i] === 1 && 'Q'}</div>)}</div>
-                        <div className="ability W"><img src={`/static/img/spell/${spells[1].image.full}`} />{[...Array(15)].map((el, i) => <div className={classnames({use: order[i] === 2})}>{order[i] === 2 && 'W'}</div>)}</div>
-                        <div className="ability E"><img src={`/static/img/spell/${spells[2].image.full}`} />{[...Array(15)].map((el, i) => <div className={classnames({use: order[i] === 3})}>{order[i] === 3 && 'E'}</div>)}</div>
-                        <div className="ability R"><img src={`/static/img/spell/${spells[3].image.full}`} />{[...Array(15)].map((el, i) => <div className={classnames({use: order[i] === 4})}>{order[i] === 4 && 'R'}</div>)}</div>
+                        <div className="ability Q"><img src={`/static/img/spell/${spells[0].image.full}`} />{[...Array(15)].map((el, i) => <div className={classnames({use: order[i] === 1})} key={i}>{order[i] === 1 && 'Q'}</div>)}</div>
+                        <div className="ability W"><img src={`/static/img/spell/${spells[1].image.full}`} />{[...Array(15)].map((el, i) => <div className={classnames({use: order[i] === 2})} key={i}>{order[i] === 2 && 'W'}</div>)}</div>
+                        <div className="ability E"><img src={`/static/img/spell/${spells[2].image.full}`} />{[...Array(15)].map((el, i) => <div className={classnames({use: order[i] === 3})} key={i}>{order[i] === 3 && 'E'}</div>)}</div>
+                        <div className="ability R"><img src={`/static/img/spell/${spells[3].image.full}`} />{[...Array(15)].map((el, i) => <div className={classnames({use: order[i] === 4})} key={i}>{order[i] === 4 && 'R'}</div>)}</div>
                       </div>
                       <div className="skill-order-stats">
                         <div className="pickrate"><img src="/static/img/done.png" />{parseFloat((orderStats.pickrate * 100).toFixed(2))}%</div>
@@ -254,10 +253,10 @@ const LiveMatch = () => {
               <div className="body">
                 {user && assets.championStats[user.championId] && (() => {
                   let builds = Object.keys(assets.championStats[user.championId].items.builds)
-                  return builds.slice(0, 3).map(buildStr => {
+                  return builds.slice(0, 3).map((buildStr, i) => {
                     let build = JSON.parse(buildStr)
                     return (
-                      <div className="itembuild">
+                      <div className="itembuild" key={i}>
                         <img className="item" src={`/static/img/items/${build[0]}.png`} />
                         <img className="arrow" src="/static/img/arrow/white_right.png" />
                         <img className="item" src={`/static/img/items/${build[1]}.png`} />
@@ -282,17 +281,21 @@ const LiveMatchList = () => {
     fetch('/api/v1/liveMatches')
       .then(res => res.json())
       .then(res => {
-        return setMatchList([])
         if (res.status === 200) {
+          console.log(res)
           setMatchList(res.d)
         }
       })
   }, [])
   return matchList ?
-      matchList.length ?
-      <div></div>
-      : <div className="status">No tracked matches</div>
-    : <div className="status">{error ? fetchError(error) : <>Loading match<Loading /></>}</div>
+    matchList.length ?
+      <div className="liveMatches">
+        {matchList.map((m, i) =>
+          <div className="match" key={i}>{m.status}</div>
+        )}
+      </div>
+    : <div className="status">No tracked matches</div>
+  : <div className="status">{error ? fetchError(error) : <>Loading matches list<Loading /></>}</div>
 }
 
 export const Live = () => {

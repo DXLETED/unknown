@@ -1,5 +1,4 @@
 import React, { Fragment, useEffect, useState, useRef } from 'react'
-import assets from "../assets"
 import { colors } from '../colorlist'
 import { positions } from '../constants/positions'
 import classnames from 'classnames'
@@ -70,6 +69,7 @@ const Champions = props => {
   }
   useEffect(() => {
     window.addEventListener('resize', resizeUpdate)
+    return () => window.removeEventListener('resize', resizeUpdate)
   }, [])
   useEffect(() => {
     updateScroll.current()
@@ -110,7 +110,7 @@ const ChampionsList = () => {
       return statsX.winrate < statsY.winrate ? 1 : -1
     })
   if (search && search.length)
-    champions = champions.filter(champ => assets.сhampionLocales[champ.key].find(name => name.toLowerCase().includes(search.toLowerCase())))
+    champions = champions.filter(champ => assets.championLocales[champ.key].find(name => name.toLowerCase().includes(search.toLowerCase())))
   if (poss && Object.values(poss).find(pos => pos)) {
     champions = champions.filter(champ => {
       let stats = assets.championStats[champ.key]
@@ -140,7 +140,6 @@ const ChampionData = props => {
   let champion = Object.values(assets.champions).find(champ => champ.id === championAlias)
   let stats = 'key' in champion ? assets.championStats[champion.key] : null
   const canvasRef = useRef()
-  console.log(convertHexToRGBA(colors.blue, 0.5))
   return champion && stats && (
     <div className="champion-data">
       <div className="head">
