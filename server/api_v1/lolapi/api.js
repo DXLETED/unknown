@@ -14,6 +14,9 @@ class Api {
       throw {status: 400, error: 'api-wrrg'}
     }
   }
+  region(plf) {
+    return Object.keys(REGIONS).find(rg => plf === REGIONS[rg])
+  }
   async statusTest() {
     try {
       await request.single('https://ru.api.riotgames.com/lol/status/v3/shard-data')
@@ -128,7 +131,7 @@ class Api {
     roles.map(el => el && positions[el] ++)
     return Object.keys(positions).find(el => positions[el] == Math.max.apply(null, Object.values(positions)))
   }
-  async matchesByAccount(plf, data, page=1) {
+  async matchesByAccount(plf, data, options, page=1) {
     let date = Date.now()
     if (Array.isArray(data)) {
       let urls = []
@@ -148,7 +151,11 @@ class Api {
         return el
       })
     } else {
-      var r = await request.single(`https://${plf}.api.riotgames.com/lol/match/v4/matchlists/by-account/${data}?beginTime=${date - page*7*24*60*60*1000}&endTime=${date - ((page-1)*7*24*60*60*1000)}`, plf, 'match/matchlists')
+      options = {...{byIndex: false}, ...options}
+      var r = await request.single(options.byIndex ?
+        `https://${plf}.api.riotgames.com/lol/match/v4/matchlists/by-account/${data}?beginIndex=${(page - 1) * 100}&endIndex=${page * 100}`
+        : `https://${plf}.api.riotgames.com/lol/match/v4/matchlists/by-account/${data}?beginTime=${date - page*7*24*60*60*1000}&endTime=${date - ((page-1)*7*24*60*60*1000)}`
+        , plf, 'match/matchlists')
       if (r.status >= 400) {
         if (r.status == 404) return {status: 200, data: {matches: []}}
         return r

@@ -36,6 +36,10 @@ class Request {
         if (res.headers.get('Retry-After')) {
           await sleep(res.headers.get('Retry-After') * 1000)
           //clear limits application
+          if (res.headers.get('x-rate-limit-type') === 'application')
+            limiting.reset(plf, 'global', parseInt(res.headers.get('Retry-After')))
+          else if (res.headers.get('x-rate-limit-type') === 'method')
+            limiting.reset(plf, method, parseInt(res.headers.get('Retry-After')))
           return this.single(url, plf, method, inputOptions)
         } else {
           await sleep(5000)

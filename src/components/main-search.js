@@ -265,7 +265,7 @@ export const MainOverlay = props => {
     <div id="overlay-main" className={focus ? 'focus' : ''}>
       <div id="sitename">SITENAME</div>
       <div id="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore</div>
-      <input id="search" type="text" placeholder="Champion | Summoner | Item ..." autoComplete="off" onClick={() => setFocus(true)} onKeyDown={keyDown} onKeyUp={keyUp} ref={searchRef} onFocus={() => inputFocusRef.current = true} onBlur={() => inputFocusRef.current = false} />
+      <input id="search" type="text" placeholder="Champion | Summoner | Item ..." autoComplete="off" spellCheck={false} onClick={() => setFocus(true)} onKeyDown={keyDown} onKeyUp={keyUp} ref={searchRef} onFocus={() => inputFocusRef.current = true} onBlur={() => inputFocusRef.current = false} />
       <div id="search-results-wr">
         <DoubleScrollbar childRef={ref => searchResultsRef = ref} updateScroll={ref => updateScroll.current = ref}>
         <div id="search-results" onScroll={updateScroll.current}>

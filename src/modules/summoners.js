@@ -3,24 +3,26 @@ import { useSelector } from 'react-redux'
 import { DraggableCore } from 'react-draggable'
 import { colors } from '../colorlist'
 import Settings from '../settings'
-import { useParams, useLocation, useRouteMatch } from 'react-router'
+import { useParams, useLocation, useRouteMatch, Route } from 'react-router'
 import classnames  from 'classnames'
 import { cssRh } from '../components/cssvars'
 import { fetchError } from '../fetcherror'
-import { intLeague, intRank, strTier } from '../utils/intLeague'
+import { intLeague, intRank, strTier, intTiers, intDivisions } from '../utils/intLeague'
 import { rankColor } from '../constants/colorRanks'
 import { timeSince } from '../utils/timeSince'
+import { romanToInt } from '../utils/romanToInt'
 import moment from 'moment'
 import { DoubleScrollbar } from '../components/double-scrollbar'
 import { positions } from '../constants/positions'
 import { queues } from '../constants/queues'
 import { NavLink as Link } from 'react-router-dom'
 import { Loading } from '../components/loading'
+import { Graph } from '../components/graph'
 
 const Matches = props => {
   return (
     <>
-      {props.matches.map((m, i) => {
+      {props.matches && props.summonerId && props.matches.map((m, i) => {
         let user = m.match.participants.find(p => p.participantId === m.match.participantIdentities.find(p2 => p2.player.summonerId === props.summonerId).participantId)
         let img = `/static/img/champion-splashes/${user.championId}.jpg`
         let background = `linear-gradient(to right, transparent calc(100% - (var(--vh) * var(--sc) * 40)), ${colors.lmain} calc(100% - (var(--vh) * var(--sc) * 15))), url(${img}) calc(var(--vh) * var(--sc) * -10) calc(var(--vh) * var(--sc) * -2) / calc(var(--vh) * var(--sc) * 50) no-repeat`
@@ -59,12 +61,13 @@ const Matches = props => {
             <div className="players">
               <div className="team1">
                 {positions.map((pos, i) => {
-                  let pl = m.match.participants.filter(p => p.teamId === user.teamId).find(p => p.position === pos)
+                  let pl = m.match.participants.filter(p => p.teamId !== user.teamId).find(p => p.position === pos)
+                  let summoner = m.match.participantIdentities.find(summ => summ.participantId === pl.participantId)
                   return (
-                    <div key={i}>
+                    <Link className="pl" to={`/summoners/${props.rg}/${summoner.player.summonerName}`} key={i}>
                       <span className="summonerName">{m.match.participantIdentities.find(p => p.participantId === pl.participantId).player.summonerName}</span>
                       <div className="icon"><img src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${pl.championId}.png`} /></div>
-                    </div>
+                    </Link>
                   )
                 })}
               </div>
@@ -75,12 +78,13 @@ const Matches = props => {
               <div className="team2">
                 {positions.map((pos, i) => {
                   let pl = m.match.participants.filter(p => p.teamId !== user.teamId).find(p => p.position === pos)
+                  let summoner = m.match.participantIdentities.find(summ => summ.participantId === pl.participantId)
                   if (!pl) console.log(m.match)
                   return (
-                    <div key={i}>
+                    <Link className="pl" to={`/summoners/${props.rg}/${summoner.player.summonerName}`} key={i}>
                       <div className="icon"><img src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${pl.championId}.png`} /></div>
                       <span className="summonerName">{m.match.participantIdentities.find(p => p.participantId === pl.participantId).player.summonerName}</span>
-                    </div>
+                    </Link>
                   )
                 })}
               </div>
@@ -99,13 +103,56 @@ const Matches = props => {
   )
 }
 
-const Summoners = () => {
+const Leaderboard = () => {
+  const location = useLocation()
+  const [leaderboard, setLeaderboard] = useState()
+  const [error, setError] = useState()
+  useEffect(() => {
+    fetch('/api/v1/leaderboard')
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 200) {
+          setLeaderboard(res.d)
+        } else {
+          setError(res)
+        }
+      })
+  }, [location])
+  return (
+    <div className="leaderboard">
+      {leaderboard ?
+      <>
+        <div className="head">
+          <div className="profileIcon"></div>
+          <div className="summonerName">Name</div>
+          <div className="tierrank">Rank</div>
+          <div className="lp">LP</div>
+          <div className="wins">Wins</div>
+          <div className="losses">Losses</div>
+        </div>
+        {leaderboard.map((summ, i) => <Link to={`summoners/ru/${summ.summonerName}`} className="summ" key={i}>
+          <img className="profileIcon" src={`/static/img/profileIcon/29.png`} />
+          <div className="summonerName">{summ.summonerName}</div>
+          <div className="tierrank">{summ.tier} {summ.rank}</div>
+          <div className="lp">{summ.leaguePoints}</div>
+          <div className="wins">{summ.wins}</div>
+          <div className="losses">{summ.losses}</div>
+        </Link>)}
+      </>
+      : <div className="status">{error ? fetchError(error) : <>Loading leaderboard<Loading /></>}</div>}
+    </div>
+  )
+}
+
+const Summoner = () => {
   let { rg, summonerName } = useParams()
   const [summoner, setSummoner] = useState()
   const [leagues, setLeagues] = useState()
   const [matches, setMatches] = useState()
   const [mainPos, setMainPos] = useState()
   const [nowplaying, setNowPlaying] = useState()
+  const [error, setError] = useState()
+  const location = useLocation()
   let mainRef = useRef()
   let matchesRef = useRef()
   let ws = useRef()
@@ -117,6 +164,7 @@ const Summoners = () => {
   let curDay = new Date().getDay()
   let match = useRouteMatch()
   useEffect(() => {
+    setMatches(null)
     ws.current = new WebSocket(`ws://${window.location.host}/ws/summonerProfile/${rg}/${summonerName}`)
     ws.current.onmessage = res => {
       let data = JSON.parse(res.data)
@@ -128,7 +176,7 @@ const Summoners = () => {
         data.loadstatus.matches && setMatches(data.d.matches)
         data.loadstatus.nowplaying && setNowPlaying(data.d.nowplaying)
       } else {
-        console.log(data.status)
+        setError(data)
       }
     }
     return () => ws.current && ws.current.close()
@@ -138,126 +186,86 @@ const Summoners = () => {
       ? leagues.find(el => el.queueType == 'RANKED_SOLO_5x5')
       : {tier: 'UNRANKED', rank: 'I', percentage: 0, wins: 0, losses: 0}
     : null
-  if (summoner && leagues) {
-    maxIntLeague = Math.max.apply(null, Object.values(leagues).map(el => intLeague(el.tier, el.rank, el.leaguePoints)))
-    minIntLeague = Math.min.apply(null, Object.values(leagues).map(el => intLeague(el.tier, el.rank, el.leaguePoints)))
-    leagueGraph = Array.apply(null, {length: 28}).map((el, i) => i - 27).map((day, i) => {
-      let d = new Date(Date.now() + day*24*60*60*1000)
-      let current = leagues[`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`]
-      if (!current) {
-        return {pos: [0, 0], days: 0}
-      }
-      let ld = new Date(Date.now() + (day-1)*24*60*60*1000)
-      let last = lastGraphChunk[0]
-      let lastDay = lastGraphChunk[1]
-      lastGraphChunk = [current, i]
-      if (!last) {
-        return {pos: [0, 0], days: 0}
-      }
-      const uniq = arr => {
-        for(var c = 0, r = {}; c < arr.length; c ++) {
-          if (!(arr[c] in r)) r[arr[c]] = 1
-          else r[arr[c]] ++
-        }
-        return r
-       }
-      //let poss = uniq(Array.apply(null, {length: Math.abs(intLeague(last.tier, last.rank, last.leaguePoints) - intLeague(current.tier, current.rank, current.leaguePoints))}).map((el, i) => i + Math.min(intLeague(last.tier, last.rank, last.leaguePoints), intLeague(current.tier, current.rank, current.leaguePoints))).map(el => strTier(el)))
-      let bgs = current.tier == strTier(minIntLeague) ? {[current.tier]: Math.abs(minIntLeague - intLeague(current.tier, current.rank, current.leaguePoints))} : uniq(Array.apply(null, {length: Math.abs(minIntLeague - intLeague(current.tier, current.rank, current.leaguePoints))}).map((el, i) => i + minIntLeague).map(el => strTier(el)))
-      console.log(bgs)
-      //return {pos: [intLeague(last.tier, last.rank, last.leaguePoints), intLeague(current.tier, current.rank, current.leaguePoints)], colors: last.tier == current.tier ? rankColor[current.tier] : [rankColor[last.tier], rankColor[current.tier]]}
-      return {pos: [intLeague(last.tier, last.rank, last.leaguePoints) - minIntLeague, intLeague(current.tier, current.rank, current.leaguePoints) - minIntLeague], days: i - lastDay, bgs: Object.keys(bgs).length > 1 ? `linear-gradient(to top, ${Object.keys(bgs).map(el => `${rankColor[el]}, ${rankColor[el]} ${bgs[el] / (maxIntLeague - minIntLeague) * 100}%`)})` : rankColor[Object.keys(bgs)[0]]}
-    })
-  }
   return (
-    <div id="summoners" className="page" ref={mainRef}>
-      <main>
-        {summoner &&
-          <>
-            <div id="side">
-              <div id="summoner">
-                <img id="profile-icon" src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${summoner.profileIconId}.jpg`} />
-                <div id="summoner-data">
-                  <div id="summoner-name">{summoner.summonerName}</div>
-                  <div id="summoner-info">
-                    <div id="summoner-level"><div className="title">Level</div><div className="value">{summoner.summonerLevel}</div></div>
-                    <div id="summoner-mainpos"><div className="title">Main position</div><div className="value">{mainPos ? mainPos[0].toUpperCase() + mainPos.slice(1) : 'Loading'}</div></div>
+    <div className="summoner">
+      {summoner ?
+        <>
+          <main>
+            {summoner &&
+              <>
+                <div id="side">
+                  <div id="summoner">
+                    <img id="profile-icon" src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${summoner.profileIconId}.jpg`} />
+                    <div id="summoner-data">
+                      <div id="summoner-name"><span>{summoner.summonerName}</span></div>
+                      <div id="summoner-info">
+                        <div id="summoner-level"><div className="title">Level</div><div className="value">{summoner.summonerLevel}</div></div>
+                        <div id="summoner-mainpos"><div className="title">Main position</div><div className="value">{mainPos ? mainPos[0].toUpperCase() + mainPos.slice(1) : 'Loading'}</div></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="league">
+                    {mainLeague ? (
+                      <>
+                        <div id="league-tier">
+                          <div id="tier">{mainLeague.tier[0] + mainLeague.tier.slice(1).toLowerCase()}</div>
+                          <div id="rank">{mainLeague.rank}</div>
+                        </div>
+                        <Graph
+                          dataset={[2256,2256,2280,2300,2300,2300,2320,2300,2350,2380,2400,2418]}
+                          color={rankColor[mainLeague.tier] || colors.grey}
+                          labels={Object.fromEntries(Object.entries(intTiers).map(([tier, tierInt]) => Object.entries(intDivisions).map(([div, divInt]) => [`${tier[0]}${romanToInt(div)}`, {pos: tierInt + divInt, color: rankColor[tier]}])).flat())}
+                        />
+                      </>
+                    ) : <Loading />}
+                  </div>
+                  <div id="activity">
+                    {mainPos ?
+                      <div id="calendar">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayI) => 
+                          <div className="day" key={dayI}>
+                            <div className="dayname">{day}</div>
+                            <div className="graph">
+                              {Array.apply(null, {length: 5}).map((el, i) => i == 0 ? (curDay < dayI + 1 ? <div className="rect" key={i}></div> : <div className="rect inv" key={i}></div>) : i == 4 ? (curDay >= dayI + 1 ? <div className="rect" key={i}></div> : <div className="rect inv" key={i}></div>) : <div className="rect" key={i}></div>)}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    : <Loading />}
                   </div>
                 </div>
-              </div>
-              <div id="league">
-                {mainLeague ? (
-                  <>
-                    <div id="league-tier">
-                      <div id="tier">{mainLeague.tier[0] + mainLeague.tier.slice(1).toLowerCase()}</div>
-                      <div id="rank">{mainLeague.rank}</div>
-                    </div>
-                    <div id="league-graph">
-                      {/*leagueGraph && leagueGraph.map((el, i) => (
-                        <svg className="graph-chunk" viewBox={`0 0 100 ${(maxIntLeague - minIntLeague) * 1.2}`} preserveAspectRatio="none">
-                          {console.log(el)}
-                          {Array.isArray(el.colors) && <linearGradient id={`gradient${i}`} x2="100%" y2="0%">
-                            <stop offset="0%" stopColor={el.colors[0]} />
-                            <stop offset="100%" stopColor={el.colors[1]} />
-                          </linearGradient>}
-                          <polygon points={`0,${(maxIntLeague - minIntLeague) * 1.2} 0,${maxIntLeague - el.pos[0]} 100,${maxIntLeague - el.pos[1]} 100,${(maxIntLeague - minIntLeague) * 1.2}`} fill={Array.isArray(el.colors) ? `url(#gradient${i})` : el.colors} fillOpacity="0.25" />
-                          <polyline points={`0,${maxIntLeague - el.pos[0]} 100,${maxIntLeague - el.pos[1]}`} stroke={Array.isArray(el.colors) ? `url(#gradient${i})` : el.colors} strokeWidth={`${Math.abs(el.pos[1] - el.pos[0]) / 15 + (maxIntLeague - minIntLeague) / 100 * 3}`} />
-                        </svg>
-                      ))*/}
-                      {/*<svg className="graph-chunk" viewBox="0 0 100 100" preserveAspectRatio="none">
-                        <polygon points="0,100 0,0 100,10 100,100" fill="#996f4c" fillOpacity="0.25" />
-                        <polyline points = "0,0 100,10" stroke="#996f4c" strokeWidth="3"/>
-                      </svg>
-                      <svg className="graph-chunk" viewBox="0 0 100 100" preserveAspectRatio="none">
-                        <polygon points="0,100 0,10 100,15 100,100" fill="#996f4c" fillOpacity="0.25" />
-                        <polyline points = "0,10 100,15" stroke="#996f4c" strokeWidth="3"/>
-                      </svg>*/}
-                      {leagueGraph && leagueGraph.map((el, i) => el.days ? (
-                        <div className="graph-chunk" style={{flex: `${el.days}`}} key={i}>
-                          <div className="line" style={{background: el.bgs, clipPath: `polygon(0% 100%, 0% ${Math.abs(el.pos[0] / (maxIntLeague - minIntLeague) * 60 - 100) - 20}%, 100% ${Math.abs(el.pos[1] / (maxIntLeague - minIntLeague) * 60 - 100) - 20}%, 100% 100%)`}}></div>
-                        </div>
-                      ) : null)}
-                    </div>
-                  </>
-                ) : <Loading />}
-              </div>
-              <div id="activity">
-                {mainPos ?
-                  <div id="calendar">
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayI) => 
-                      <div className="day" key={dayI}>
-                        <div className="dayname">{day}</div>
-                        <div className="graph">
-                          {Array.apply(null, {length: 5}).map((el, i) => i == 0 ? (curDay < dayI + 1 ? <div className="rect" key={i}></div> : <div className="rect inv" key={i}></div>) : i == 4 ? (curDay >= dayI + 1 ? <div className="rect" key={i}></div> : <div className="rect inv" key={i}></div>) : <div className="rect" key={i}></div>)}
-                        </div>
-                      </div>
-                    )}
+                <div id="main">
+                  <div id="matches-wr">
+                    {matches ?
+                      matches.length ?
+                        <DoubleScrollbar childRef={ref => matchesRef = ref} updateScroll={ref => updateScroll.current = ref} init={() => updateScroll.current()}>
+                          <div id="matches" onScroll={() => updateScroll.current()}>
+                            <Matches matches={matches} summonerId={summoner.summonerId} rg={rg} />
+                          </div>
+                        </DoubleScrollbar>
+                      : <div className="status">No results</div>
+                    : <div className="status">Loading matches<Loading /></div>}
                   </div>
-                : <Loading />}
-              </div>
-            </div>
-            <div id="main">
-              <div id="matches-wr">
-                {matches ?
-                  matches.length ?
-                    <DoubleScrollbar childRef={ref => matchesRef = ref} updateScroll={ref => updateScroll.current = ref} init={() => updateScroll.current()}>
-                      <div id="matches" onScroll={() => updateScroll.current()}>
-                        <Matches matches={matches} summonerId={summoner.summonerId} />
-                      </div>
-                    </DoubleScrollbar>
-                  : <div className="status">No results</div>
-                : <div className="status">Matches loading<Loading /></div>}
-              </div>
-            </div>
-          </>
-        }
-      </main>
-      <div id="nav">
-        <Link className="nav-item" exact to={`${match.url}`}>Main</Link>
-        <Link className="nav-item" exact to={`${match.url}/matches`}>Matches</Link>
-        <Link className={classnames('nav-item', {nowplaying})} to={`/live/${match.params.rg}/${match.params.summonerName}`}>Live</Link>
-      </div>
+                </div>
+              </>
+            }
+          </main>
+          <div id="nav">
+            <Link className="nav-item" exact to={`${match.url}`}>Main</Link>
+            <Link className="nav-item" exact to={`${match.url}/matches`}>Matches</Link>
+            <Link className={classnames('nav-item', {nowplaying})} to={`/live/${match.params.rg}/${match.params.summonerName}`}>Live</Link>
+          </div>
+        </>
+      : <div className="status">{error ? fetchError(error) : <>Loading summoner<Loading /></>}</div>}
     </div>
   )
 }
 
-export { Summoners }
+export const Summoners = () => {
+  return (
+    <div id="summoners" className="page">
+      <Route exact path="/summoners" component={Leaderboard} />
+      <Route path="/summoners/:rg/:summonerName" component={Summoner} />
+    </div>
+  )
+}

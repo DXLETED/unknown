@@ -1,23 +1,21 @@
 const {
   Worker, isMainThread, parentPort, workerData
 } = require('worker_threads')
-let Api = require('../api_v1/lolapi')
 let moment = require('moment-timezone')
 const REGIONS = require('../constants/regions')
 const TIERS = require('../constants/tiers')
 const DIVISIONS = require('../constants/divisions')
 const TIMEZONES = require('../constants/timezones')
-let db, clientDB
+const store = require('../store')
+const limiting = require('../api_v1/lolapi/limiting')
+const MongoClient = require('mongodb').MongoClient
+let db, dbClient, Api
 
 const getEntriesIteration = async (plf, queue, tier, division, page, entries) => {
-  try {
-    var r = await Api.entries(plf, {queue, tier, division, page: page})
-  } catch(e) {
-    console.log(e)
-    return
-  }
-  entries(r)
-  if (r.length != 0) {
+  let r = await Api.entries(plf, {queue, tier, division, page: page})
+  if (r.status !== 200) return
+  entries(r.data)
+  if (r.data.length != 0) {
     await getEntriesIteration(plf, queue, tier, division, page + 1, entries)
   } else {
     r = null
@@ -80,13 +78,13 @@ getDivisionEntries = async (plf, tier, division) => {
       leaguePoints: el.leaguePoints
     }})
     //console.log(await clientDB.db('test').collection(`summoners-${plf}`).find({summonerId: {$in: entries.map(el => el.summonerId)}}).toArray())
-    let session = clientDB.startSession()
+    let session = dbClient.startSession()
     console.log(Date.now(), 1)
     try {
       await session.withTransaction(async () => {
-        await clientDB.db('test').collection(`summoners-${plf}`).deleteMany({summonerId: {$in: rSummoners.map(el => el.summonerId)}}, {session})
-        await clientDB.db('test').collection(`summoners-${plf}`).insertMany(rSummoners, {session})
-        await clientDB.db('test').collection(`leagues-${plf}`).insertMany(rLeagues, {session})
+        await dbClient.db('test').collection(`summoners-${plf}`).deleteMany({summonerId: {$in: rSummoners.map(el => el.summonerId)}}, {session})
+        await dbClient.db('test').collection(`summoners-${plf}`).insertMany(rSummoners, {session})
+        await dbClient.db('test').collection(`leagues-${plf}`).insertMany(rLeagues, {session})
       })
     } catch (e) {
       console.log(e)
@@ -131,40 +129,37 @@ getPlatformEntries = async plf => {
   })
 }
 
-module.exports.summoners = async () => {
-  console.log(process.memoryUsage())
-  /*
-  for (let plf of Object.values(REGIONS)) {
-    await getPlatformEntries(plf)
-  }
-  console.log('PARSE: SUMMONERS - DONE', process.memoryUsage())
-  */
- /*
-  Promise.all(['br1'].map(async plf => await getPlatformEntries(plf)))
-    .then(r => console.log('PARSE: SUMMONERS - DONE', process.memoryUsage()))
-  */
-}
-
 if (isMainThread) {
-  module.exports = () => {
-    console.log("this is the main thread")
-    let w = new Worker(__filename, {workerData: null})
-    w.on('message', (msg) => {
-      console.log(msg)
+  module.exports = plf => {
+    let w = new Worker(__filename, {workerData: {name: 'summoners', plf}})
+    w.on('message', async (msg) => {
+      if (msg.type == 'LIMITING') {
+        await limiting.iteration(msg.plf, msg.method)
+        w.postMessage({type: 'LIMITING', id: msg.id})
+      }
+      if (msg.type == 'LIMITING_RESET') {
+        await limiting.reset(msg.plf, msg.method)
+        w.postMessage({type: 'LIMITING_RESET', id: msg.id})
+      }
     })
     w.on('error', console.error)
     w.on('exit', (code) => {
       if(code != 0)
-          console.error(new Error(`Worker stopped with exit code ${code}`))
+        console.error(new Error(`Worker stopped with exit code ${code}`))
     })
   }
 } else {
   (async () => {
-    clientDB = await require('../connect')
-    db = clientDB.db('test')
-    console.log("this isn't")
+    const client = await MongoClient.connect('mongodb://localhost:27017', {useUnifiedTopology: true})
+    require('../db').set(client.db('test'), client)
+    db = require('../db')()
+    dbClient = require('../db').client()
+    store.dispatch({type: 'UPDATE_RIOTAPIKEY', data: (await db.collection('config').findOne({key: 'riotapi_key'})).value})
+    Api = require('../api_v1/lolapi/api')
     //parentPort.postMessage({q: 1})
-    await Promise.all(['ru'].map(async plf => await getPlatformEntries(plf)))
-    console.log('PARSE: SUMMONERS - DONE', process.memoryUsage())
+    //await Promise.all(['ru'].map(async plf => await getPlatformEntries(plf)))
+    await getPlatformEntries(workerData.plf)
+    console.log('PARSE: SUMMONERS - DONE')
+    setTimeout(process.exit, 5000)
   })()
 }

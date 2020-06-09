@@ -101,7 +101,10 @@ const MainPage = () => {
 const Main = () => {
   useEffect(() => {
     if (store.getState().settings.imgpreload !== false) {
-      let imgStage2 = Object.values(assets.champions).map(champ => [`/static/img/champion-splashes/${champ.key}.jpg`, `/static/img/champion/${champ.image.full}`]).flat()
+      let imgStage2 = [
+        ...Object.values(assets.champions).map(champ => [`/static/img/champion-splashes/${champ.key}.jpg`, `/static/img/champion/${champ.image.full}`]).flat(),
+        ...Object.values(assets.items).filter(item => item.inStore).map(item => `/static/img/items/${item.id}.png`)
+      ]
       let imgLoaded = 0
       let imgLength = {}
       Promise.all(Object.values(imgStage2).map(src =>
@@ -129,7 +132,7 @@ const Main = () => {
       <Router>
         <Header />
         <Route exact path="/" component={MainPage} />
-        <Route path="/summoners/:rg/:summonerName" component={Summoners} />
+        <Route path="/summoners" component={Summoners} />
         <Route path="/statistics" component={Statistics} />
         <Route path="/live" component={Live} />
       </Router>

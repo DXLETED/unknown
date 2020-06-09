@@ -156,6 +156,29 @@ class Limiting {
       })
     }
   }
-  //clear (plf, method)
+  reset (plf, method, timeout=null) {
+    if (isMainThread) {
+      if (method === 'global') {
+        limits[plf]['global/s']['drop'] = Date.now() + (timeout || limits[plf]['global/s']['timeout']) * 1000 + 1000
+        limits[plf]['global/l']['drop'] = Date.now() + (timeout || limits[plf]['global/l']['timeout']) * 1000 + 1000
+      } else {
+        limits[plf][method]['drop'] = Date.now() + (timeout || limits[plf][method]['timeout']) * 1000 + 1000
+      }
+      wsm.send('limits', JSON.stringify({time: Date.now(), regions: limits}))
+    } else {
+      return new Promise(res => {
+        let cId = `${workerData.name}-${id}`
+        id ++
+        parentPort.postMessage({type: 'LIMITING_RESET', id: cId, plf, method})
+        let listener = msg => {
+          if (msg.type === 'LIMITING_RESET' && msg.id === cId) {
+            parentPort.removeListener('message', listener)
+            res()
+          }
+        }
+        parentPort.on('message', listener)
+      })
+    }
+  }
 }
 module.exports = new Limiting()

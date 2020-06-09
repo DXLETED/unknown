@@ -8,6 +8,7 @@ import Menu from '../components/menu'
 import { Switch, SwitchMenu } from '../components/switch'
 import { useSelector, useDispatch } from 'react-redux'
 import { ConfInput } from '../components/input'
+import { Button } from '../components/button'
 import { LoadStatus } from '../components/loadstatus'
 import { Select } from '../components/select'
 import regions from '../constants/regions'
@@ -128,6 +129,9 @@ const Header = () => {
                   </SwitchMenu>
                   <SwitchMenu akey="limits" id="limits" headline={<><div className="label">RiotAPI rate limits</div><div className="props">Region: <Select id="limits-region" akey="limitsRegion" defaultValue={2} color="wh" dropdown={Object.keys(regions).map(rg => rg.toLocaleUpperCase())} /></div></>}>
                     <Limits />
+                  </SwitchMenu>
+                  <SwitchMenu akey="run" id="run" headline={<><div className="label">Run</div></>}>
+                    <Button>Parse summoners</Button>
                   </SwitchMenu>
                 </>
               } overlay={

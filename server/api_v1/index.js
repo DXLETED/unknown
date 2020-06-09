@@ -1,5 +1,6 @@
 var express = require('express')
 var router = express.Router()
+const REGIONS = require('../constants/regions')
 let Api = require('./lolapi/api')
 let Request = require('./lolapi/request')
 let limiting = require('./lolapi/limiting')
@@ -12,6 +13,7 @@ const db = require('../db')()
 
 let liveMatches = require('./liveMatches')
 let app = require('./app')
+let parsersStatus = {summoners: false, matches: false, fillSummonersActivity: false}
 let parsers = {summoners: require('../parsers/summoners'), matches: require('../parsers/matches'), fillSummonersActivity: require('../parsers/fillSummonersActivity')}
 
 router
@@ -36,14 +38,58 @@ router
   res.json(limiting.getAll())
 })
 
-.get('/parse/summoners', async (req, res) => {
+.get('/parse/summoners', auth.required, (err, req, res, next) => {
+  if (err.message === 'No authorization token was found')
+    return res.json({
+      status: 401,
+      message: 'auth-01'
+    })
+  if (err.message === 'invalid signature') {
+    return res.json({
+      status: 401,
+      error: 'auth-02'
+    })
+  }
+  if (err.code === 'invalid_token') {
+    return res.json({
+      status: 401,
+      error: 'auth-03'
+    })
+  }
+}, async (req, res) => {
   res.json({})
-  parsers.summoners()
+  if (!parsersStatus.summoners) {
+    parsersStatus.summoners = true
+    await Promise.all(Object.values(REGIONS).map(plf => parsers.summoners(plf)))
+    parsersStatus.summoners = false
+  }
 })
 
-.get('/parse/matches', async (req, res) => {
+.get('/parse/matches', auth.required, (err, req, res, next) => {
+  if (err.message === 'No authorization token was found')
+    return res.json({
+      status: 401,
+      message: 'auth-01'
+    })
+  if (err.message === 'invalid signature') {
+    return res.json({
+      status: 401,
+      error: 'auth-02'
+    })
+  }
+  if (err.code === 'invalid_token') {
+    return res.json({
+      status: 401,
+      error: 'auth-03'
+    })
+  }
+}, async (req, res) => {
   res.json({})
-  parsers.matches('ru')
+  if (!parsersStatus.matches) {
+    parsersStatus.matches = true
+    await Promise.all(Object.values(REGIONS).map(plf => parsers.matches(plf)))
+    parsersStatus.matches = false
+  }
 })
 
 .get('/parse/fillSummonersActivity', async (req, res) => {
@@ -108,11 +154,14 @@ router
     .map(plfLM => Object.values(plfLM)
       .filter(m => m.status === 200 && m.loadstatus.match)
       .map(m => {return {
+        rg: m.rg,
         plf: m.plf,
-        participants: m.d.matchInfo.participants.map(p => {return {
+        queueType: m.d.matchInfo.gameQueueConfigId,
+        participants: [...m.d.teams.team1, ...m.d.teams.team2].map(p => {return {
           summonerName: p.summonerName,
           championId: p.championId,
-          teamId: p.teamId
+          teamId: p.teamId,
+          position: p.position
         }})
       }})
     ).flat()
@@ -135,6 +184,19 @@ router
 
 .get('/matchInfo/:rg/:summonerName/', async (req, res) => {
   res.json(await app.live(req.params.rg, req.params.summonerName))
+})
+
+.get('/leaderboard', async (req, res) => {
+  let top = await db.collection('leagues-ru').find({tier: 'CHALLENGER', leaguePoints: {$exists: true}}).sort({leaguePoints: -1}).limit(100).toArray()
+  let summonersRaw = await db.collection('summoners-ru').find({summonerId: {$in: top.map(el => el.summonerId)}}).toArray()
+  let summoners = {}
+  for (s of summonersRaw) {
+    summoners[s.summonerId] = s
+  }
+  res.json(top ? {status: 200, d: top.map(summ => {return {
+    ...summ,
+    summonerName: summoners[summ.summonerId] ? summoners[summ.summonerId].summonerName : null
+  }})} : {status: 500})
 })
 
 .use('*', (req, res) => {

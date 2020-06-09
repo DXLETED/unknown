@@ -253,6 +253,10 @@ if (isMainThread) {
         await limiting.iteration(msg.plf, msg.method)
         w.postMessage({type: 'LIMITING', id: msg.id})
       }
+      if (msg.type == 'LIMITING_RESET') {
+        await limiting.reset(msg.plf, msg.method)
+        w.postMessage({type: 'LIMITING_RESET', id: msg.id})
+      }
       if (msg.type == 'START_PROGRESS') {
         console.log(msg.text)
         bar.start(msg.value, 0)

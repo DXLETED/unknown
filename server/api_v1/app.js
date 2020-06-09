@@ -71,7 +71,7 @@ const liveMatch = async (plf, summoner, matchInfo) => {
     }
   })
   if (!liveMatches[gameId] || !liveMatches[gameId].loadstatus.match)
-    updateLiveMatch(plf, gameId, {d: r, plf, status: 200, loadstatus: {match: true, leagues: false, stats: false, ended: false}})
+    updateLiveMatch(plf, gameId, {d: r, plf, rg: Api.region(plf), status: 200, loadstatus: {match: true, leagues: false, stats: false, ended: false}})
   
   new Promise(async () => {
     let participants = []
@@ -155,7 +155,12 @@ module.exports.summonerProfile = async (rg, summonerName) => {
     return {status: 400, error: 'rg404'}
   }
   let summoner = await Api.accountByName(plf, summonerName)
-  if (summoner.status !== 200) return {status: summoner.status}
+  if (summoner.status !== 200) {
+    if (summoner.status === 404) {
+      return {error: 'sum404'}
+    }
+    return {status: summoner.status}
+  }
     summoner = summoner.data
   let summonerId = summoner.summonerId
   updateSummoner(plf, summonerId, {status: 200, plf, loadstatus: {summoner: true, leagues: false, matchlist: false, matches: false, nowplaying: false}, d: {summoner}})
@@ -173,9 +178,13 @@ module.exports.summonerProfile = async (rg, summonerName) => {
     summonersList[plf][summonerId] && updateSummoner(plf, summonerId, {nowplaying: true}, 'nowplaying')
   })
   new Promise(async () => {
-    let matchlist = await Api.matchesByAccount(plf, summoner.accountId)
-    if (matchlist.status !== 200) return {status: matchlist.status}
-      matchlist = matchlist.data.matches
+    let matchlist = await Api.matchesByAccount(plf, summoner.accountId, {byIndex: true})
+    if (matchlist.status !== 200) {
+      if (matchlist.status === 404)
+        return {status: 200}
+      return {status: matchlist.status}
+    }
+      matchlist = matchlist.data.matches.slice(0, 20)
     let roles = matchlist.map((el, i) => {
       if (i < 20) {
         if (el.lane == 'TOP') return 'top'

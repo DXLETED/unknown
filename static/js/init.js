@@ -1899,10 +1899,10 @@ module.exports = {
 
 /***/ }),
 
-/***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/string-replace-webpack-plugin/loader.js?id=xlhbaoq7cqq!./src/css/init.scss":
-/*!******************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/string-replace-webpack-plugin/loader.js?id=xlhbaoq7cqq!./src/css/init.scss ***!
-  \******************************************************************************************************************************************************************************/
+/***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/string-replace-webpack-plugin/loader.js?id=rzcxrn80hf!./src/css/init.scss":
+/*!*****************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/string-replace-webpack-plugin/loader.js?id=rzcxrn80hf!./src/css/init.scss ***!
+  \*****************************************************************************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -3029,7 +3029,7 @@ module.exports = g;
 /***/ (function(module, exports, __webpack_require__) {
 
 var api = __webpack_require__(/*! ../../node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js */ "./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
-            var content = __webpack_require__(/*! !../../node_modules/css-loader/dist/cjs.js!../../node_modules/sass-loader/dist/cjs.js!../../node_modules/string-replace-webpack-plugin/loader.js?id=xlhbaoq7cqq!./init.scss */ "./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/string-replace-webpack-plugin/loader.js?id=xlhbaoq7cqq!./src/css/init.scss");
+            var content = __webpack_require__(/*! !../../node_modules/css-loader/dist/cjs.js!../../node_modules/sass-loader/dist/cjs.js!../../node_modules/string-replace-webpack-plugin/loader.js?id=rzcxrn80hf!./init.scss */ "./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/string-replace-webpack-plugin/loader.js?id=rzcxrn80hf!./src/css/init.scss");
 
             content = content.__esModule ? content.default : content;
 

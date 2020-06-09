@@ -1,6 +1,82 @@
 @import "colorlist.scss";
 
 .page#live {
+  .liveMatches {
+    padding: 1vh;
+    > .match {
+      width: calc(100% / 5);
+      height: 16vh;
+      flex-direction: column;
+      background: $lmain;
+      > .head {
+        width: 100%;
+        height: 3vh;
+        justify-content: space-between;
+        padding: 0 1vh;
+        align-items: center;
+        background: $grey;
+        color: $black;
+      }
+      > .main {
+        width: 100%;
+        height: calc(100% - 3vh);
+        justify-content: space-between;
+        > .team1, .team2 {
+          &.team1 {
+            > * {
+              > .summonerName {
+                text-align: right;
+              }
+              > .icon {
+                margin-left: 1vh;
+              }
+            }
+          }
+          &.team2 {
+            > * {
+              > .icon {
+                margin-right: 1vh;
+              }
+            }
+          }
+          position: relative;
+          flex-direction: column;
+          width: 48%;
+          height: 100%;
+          align-items: center;
+          > * {
+            display: flex;
+            width: 100%;
+            height: 20%;
+            align-items: center;
+            cursor: pointer;
+            &:hover > .summonerName {
+              color: $white;
+            }
+            > .summonerName {
+              flex: 1;
+              font-size: 1.4vh;
+              overflow: hidden;
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              color: $grey;
+            }
+            > .icon {
+              width: 2.25vh;
+              height: 2.25vh;
+              justify-content: center;
+              align-items: center;
+              overflow: hidden;
+              border-radius: 0.5vh;
+              > img {
+                height: 110%;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
   main {
     display: flex;
     width: 100%;

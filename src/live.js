@@ -4,12 +4,15 @@ import { DraggableCore } from 'react-draggable'
 import { colors } from './colorlist'
 import Settings from './settings'
 import { useParams, useLocation, Route } from 'react-router'
+import { NavLink as Link } from 'react-router-dom'
 import classnames  from 'classnames'
 import { cssRh } from './components/cssvars'
 import { rankColor } from './constants/colorRanks'
 import { shortTiers } from './constants/shortTiers'
 import { Loading } from './components/loading'
+import { positions } from './constants/positions'
 import { fetchError } from './fetcherror'
+import { queues } from './constants/queues'
 
 const Player = (props) => {
   let id = 'player-' + props.id
@@ -42,12 +45,11 @@ const Player = (props) => {
     input == 'II' ? 2 :
     input == 'III' ? 3 :
     input == 'IV' ? 4 : null
-  const hiddenRanks = ['UNRANKED', 'MASTER', 'GRANDMASTER', 'CHALLENER']
+  const hiddenRanks = ['UNRANKED', 'MASTER', 'GRANDMASTER', 'CHALLENGER']
   const mouseMove = e => {
     if (mouseDown.current) {
       setPosition(e.clientY - startPosition.current)
       Array.from(ref.current.closest('.team').children).map(el => el.classList.remove('backdrop'))
-      console.log(Array.from(ref.current.closest('.team').children).map(el => el.offsetTop), ref.current.offsetTop, ref.current.children[0].offsetTop)
       backdrop.current = Array.from(ref.current.closest('.team').children).find(el =>
         el.offsetTop - cssRh(12) < ref.current.offsetTop + ref.current.children[0].offsetTop + (e.clientY - startPosition.current) &&
         ref.current.offsetTop + ref.current.children[0].clientHeight + ref.current.children[0].offsetTop + (e.clientY - startPosition.current) < el.offsetTop + el.clientHeight + cssRh(12))
@@ -62,7 +64,6 @@ const Player = (props) => {
       setPosition(0)
       let refId = Array.from(ref.current.closest('.team').children).findIndex(el => el == ref.current)
       let backdropId = Array.from(ref.current.closest('.team').children).findIndex(el => el == backdrop.current)
-      console.log(refId, backdropId)
       if (refId >= 0 && backdropId >= 0)
         props.swap(props.teamId, refId, backdropId)
     }
@@ -153,10 +154,16 @@ const LiveMatch = () => {
         setError(data)
       }
     }
+    window.onfocus = () => {
+      setVisibility({teamDamageType: true, skillOrder: true, items: true})
+    }
     setTimeout(() => setVisibility({...visibilityRef.current, teamDamageType: true}), 200)
     setTimeout(() => setVisibility({...visibilityRef.current, skillOrder: true}), 400)
     setTimeout(() => setVisibility({...visibilityRef.current, items: true}), 600)
-    return () => ws.current && ws.current.close()
+    return () => {
+      ws.current && ws.current.close()
+      window.onfocus = null
+    }
   }, [location])
   useEffect(() => {
     visibilityRef.current = visibility
@@ -166,7 +173,6 @@ const LiveMatch = () => {
     teamPositions[a] = [teamPositions[b], teamPositions[b] = teamPositions[a]][0]
     setPositions({...positions, ['team' + teamId]: teamPositions})
   }
-  console.log(visibility)
   return (
       matchInfo.loadstatus && matchInfo.loadstatus.match ?
         <main>
@@ -291,7 +297,36 @@ const LiveMatchList = () => {
     matchList.length ?
       <div className="liveMatches">
         {matchList.map((m, i) =>
-          <div className="match" key={i}>{m.status}</div>
+          <div className="match" key={i}>
+            <div className="main">
+              <div className="team1">
+                {positions.map((pos, i) => {
+                  let pl = m.participants.filter(p => p.teamId === 100).find(p => p.position === pos)
+                  return (
+                    <Link to={`live/${m.rg}/${pl.summonerName}`} key={i}>
+                      <span className="summonerName">{pl.summonerName}</span>
+                      <div className="icon"><img src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${pl.championId}.png`} /></div>
+                    </Link>
+                  )
+                })}
+              </div>
+              <div className="team2">
+                {positions.map((pos, i) => {
+                  let pl = m.participants.filter(p => p.teamId === 200).find(p => p.position === pos)
+                  return (
+                    <Link to={`live/${m.rg}/${pl.summonerName}`} key={i}>
+                      <div className="icon"><img src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${pl.championId}.png`} /></div>
+                      <span className="summonerName">{pl.summonerName}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+            <div className="head">
+              <div className="gameType">{queues(m.queueType)}</div>
+              <div className="region">{m.rg.toUpperCase()}</div>
+            </div>
+          </div>
         )}
       </div>
     : <div className="status">No tracked matches</div>

@@ -1,6 +1,6 @@
 import { DIVISIONS } from '../constants/divisions'
 
-const intTiers = {
+export const intTiers = {
   'IRON': 400,
   'BRONZE': 800,
   'SILVER': 1200,
@@ -12,7 +12,7 @@ const intTiers = {
   'CHALLENGER': 2800
 }
 
-const intDivisions = {
+export const intDivisions = {
   'IV': 0,
   'III': 100,
   'II': 200,

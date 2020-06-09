@@ -1,0 +1,29 @@
+@import "./colorlist.scss";
+
+.graph {
+  position: relative;
+  justify-content: flex-end;
+  > svg {
+    flex: 1;
+  }
+  > .labels {
+    position: relative;
+    > .label {
+      width: 100%;
+      justify-content: center;
+      position: absolute;
+      transform: translateY(-50%);
+    }
+  }
+  > .highlight {
+    position: absolute;
+    left: 0;
+    height: 100%;
+    > .chunk {
+      flex: 1;
+      &:hover {
+        background: rgba($white, 0.1);
+      }
+    }
+  }
+}
