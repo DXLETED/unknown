@@ -115,11 +115,11 @@ const Main = () => {
           Promise.all(
             imgStage2.map((src, i) => {
               let img = new Image()
-              img.src = src
               img.onload = () => {
                 imgLoaded += imgLength[src]
                 store.dispatch({type: 'UPDATE_LOADING', data: imgLoaded / Object.values(imgLength).reduce((x, y) => x + y)})
               }
+              img.src = src
               window.images.push(img)
             })
           )

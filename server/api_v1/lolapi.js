@@ -1,6 +1,7 @@
 const fetch = require('node-fetch')
 const wsm = require('../ws/wsm')
 const REGIONS = require('../constants/regions')
+const config = require('../../env/config')
 const db = require('../db')()
 
 methods = {
@@ -446,5 +447,5 @@ class Lolapi {
   }
 }
 
-Api = new Lolapi('RGAPI-b3dc87fb-83b5-4574-a55f-682ecf5da687')
+Api = new Lolapi(config.RIOT_API_KEY)
 module.exports = Api

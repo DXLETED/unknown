@@ -32,7 +32,7 @@ const store = require('./store')
   .use(cookieParser())
   .use(session({ secret: 'passport-tutorial', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false }))
 
-  .use('/static/', express.static('static/'))
+  .use('/static/', express.static('static/', {maxAge: 604800000}))
 
   .use('/api/v1/', require('./api_v1'))
 

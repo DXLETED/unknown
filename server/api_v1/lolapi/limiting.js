@@ -159,9 +159,12 @@ class Limiting {
   reset (plf, method, timeout=null) {
     if (isMainThread) {
       if (method === 'global') {
+        limits[plf]['global/s']['count'] = 0
+        limits[plf]['global/l']['count'] = 0
         limits[plf]['global/s']['drop'] = Date.now() + (timeout || limits[plf]['global/s']['timeout']) * 1000 + 1000
         limits[plf]['global/l']['drop'] = Date.now() + (timeout || limits[plf]['global/l']['timeout']) * 1000 + 1000
       } else {
+        limits[plf][method]['count'] = 0
         limits[plf][method]['drop'] = Date.now() + (timeout || limits[plf][method]['timeout']) * 1000 + 1000
       }
       wsm.send('limits', JSON.stringify({time: Date.now(), regions: limits}))

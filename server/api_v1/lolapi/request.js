@@ -34,12 +34,11 @@ class Request {
       console.log(`RiotAPI request\t| ${plf}\t| ${method}\t| ${res.status}\t| ${Date.now() - st}`)
       if (res.status == 429) {
         if (res.headers.get('Retry-After')) {
-          await sleep(res.headers.get('Retry-After') * 1000)
-          //clear limits application
           if (res.headers.get('x-rate-limit-type') === 'application')
             limiting.reset(plf, 'global', parseInt(res.headers.get('Retry-After')))
           else if (res.headers.get('x-rate-limit-type') === 'method')
             limiting.reset(plf, method, parseInt(res.headers.get('Retry-After')))
+          await sleep(res.headers.get('Retry-After') * 1000 + 1000)
           return this.single(url, plf, method, inputOptions)
         } else {
           await sleep(5000)
@@ -68,7 +67,6 @@ class Request {
   async multiple(requests) {
     let r = []
     for (let i = 0; i < requests.length; i += 10) {
-      //let requestsPool = Array.apply(null, {length: 20}).map((el, ii) => requests[i + ii]).filter(el => el && el)
       let requestsPool = requests.slice(i, i + 10)
       try {
         r = [...r, ...await Promise.all(requestsPool.map(async req => {return {...await this.single(req.url, req.plf, req.method, req.options || {}), ...req.i && {i: req.i}}}))]
